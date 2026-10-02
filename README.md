@@ -12,6 +12,6 @@ Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa
 ## Lessons learned
 - Code placed after the closing brace of `while (1)` never executes; application code must sit inside the loop, within CubeMX `USER CODE` markers so regeneration preserves it.
 - Leading whitespace in `.gitignore` silently breaks pattern matching; build output was committed until the file was corrected and tracked files removed with `git rm --cached`.
-
+- With FreeRTOS, the HAL needs its own timebase (TIM21) because the scheduler takes over SysTick; after `osKernelStart()` the `while (1)` loop in `main()` is never reached.
 ## Tools
 STM32CubeMX · STM32CubeIDE 2.x · STM32 HAL · Git · PuTTY
