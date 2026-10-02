@@ -4,7 +4,7 @@ Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa
 
 ## Progress
 - [x] **Week 1a:** GPIO + UART bring-up — LED toggling and serial output over the ST-LINK virtual COM port (115200 baud)
-- [ ] **Week 1b:** FreeRTOS (CMSIS-RTOS v2) with independent LED and UART tasks
+- [x] **Week 1b:** FreeRTOS (CMSIS-RTOS v2) with independent LED and UART tasks
 - [ ] **Week 2:** DS18B20 sensor task with queue-based logging
 - [ ] **Week 3:** Interrupt-driven events, mutex-protected UART, LoRa transmission task
 - [ ] **Week 4:** Watchdog, low-power tickless idle, CMake/GCC command-line build
