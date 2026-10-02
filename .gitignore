@@ -1,8 +1,8 @@
-   Debug/
-   Release/
-   *.o
-   *.d
-   *.elf
-   *.map
-   *.list
-   .settings/
+Debug/
+Release/
+*.o
+*.d
+*.elf
+*.map
+*.list
+.settings/
