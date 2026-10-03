@@ -18,5 +18,6 @@ Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa
 - A binary semaphore holds at most one pending signal, so repeated button presses during a reading trigger only one extra reading.
 - CubeMX creates semaphores with an initial count of 1; the task drains it at start-up so only real presses count.
 - The ISR does the minimum (debounce check, release semaphore); the work happens in the task.
+- A watchdog that is fed from a timer or from one task can mask a hung task. Each task sets an event flag; a supervisor task feeds the IWDG only when all flags arrive, so any single stuck task triggers a reset. Tested with a deliberate hang (`SIMULATE_SENSOR_HANG`).
 ## Tools
 STM32CubeMX · STM32CubeIDE 2.x · STM32 HAL · Git · PuTTY
