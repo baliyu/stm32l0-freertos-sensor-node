@@ -11,9 +11,17 @@ Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa
 - [x] Heartbeat-based hardware watchdog (IWDG) with event flags, verified by fault injection
 - [x] Low-power tickless idle: wake-ups cut from ~1,000/s to ~5/s
 - [x] Code split into driver (`ds18b20`) and application (`app`) modules, keeping CubeMX-generated `main.c` clean
-- [ ] LoRa transmission task
-- [ ] CMake / arm-none-eabi-gcc command-line build
+- [x] CMake / arm-none-eabi-gcc command-line build (Ninja, builds from a clean clone on Ubuntu/WSL2)
+- [ ] LoRa transmission task.
 
+   ## Build from the command line
+```bash
+   sudo apt install cmake ninja-build gcc-arm-none-eabi
+   cmake --preset Debug
+   cmake --build --preset Debug
+```
+   Output: `build/Debug/l072_blinky.elf` (about 42 KB flash, 14 KB RAM).
+   
 ## Lessons learned
 - Code placed after the closing brace of `while (1)` never executes; application code must sit inside the loop, within CubeMX `USER CODE` markers so regeneration preserves it.
 - Leading whitespace in `.gitignore` silently breaks pattern matching; build output was committed until the file was corrected and tracked files removed with `git rm --cached`.
@@ -26,6 +34,7 @@ Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa
 - A watchdog fed from a timer or from one task can mask a hung task. Each task sets an event flag; a supervisor task feeds the IWDG only when all flags arrive, so any single stuck task triggers a reset. Tested with a deliberate hang (`SIMULATE_SENSOR_HANG`).
 - Enabling tickless idle alone did not reduce wake-ups: the TIM21 HAL timebase woke the CPU every 1 ms. Suspending it in the pre/post-sleep hooks (`HAL_SuspendTick` / `HAL_ResumeTick`) cut sleep entries from ~2,787 to ~13 per 2.75 s reading cycle (~200x fewer wake-ups).
 - Because the HAL tick pauses during sleep, time-sensitive code such as the button debounce uses the FreeRTOS tick (`osKernelGetTickCount()`) instead of `HAL_GetTick()`.
+- Switching the CubeMX project to CMake does not add your own source files: `app_tasks.c` and `ds18b20.c` had to be listed under `target_sources` in `CMakeLists.txt`. Build with `cmake --preset Debug && cmake --build --preset Debug`
 
 ## Tools
 STM32CubeMX · STM32CubeIDE 2.x · STM32 HAL · Git · PuTTY
