@@ -7,6 +7,7 @@
 #include <string.h>
 
 #define SIMULATE_SENSOR_HANG 0   /* set to 1 to test the watchdog */
+#define SHOW_SLEEP_STATS     1   /* print how much of the time the CPU sleeps */
 
 #define HB_LED    0x01U          /* heartbeat bits for the watchdog */
 #define HB_SENSOR 0x02U
@@ -18,6 +19,26 @@ extern osMessageQueueId_t tempQueueHandle;
 extern osMutexId_t        uartMutexHandle;
 extern osSemaphoreId_t    buttonSemHandle;
 extern osEventFlagsId_t   wdgFlagsHandle;
+
+/* ---------- Tickless idle statistics ---------- */
+static volatile uint32_t g_sleep_entries = 0;   /* times the CPU went to sleep */
+
+/* Called by FreeRTOS just before it sleeps (scheduler suspended: keep it tiny).
+   TIM21 drives the HAL tick every 1 ms and would wake the CPU each time,
+   so it is paused for the duration of the sleep. */
+void PreSleepProcessing(uint32_t *ulExpectedIdleTime)
+{
+  (void)ulExpectedIdleTime;
+  g_sleep_entries++;
+  HAL_SuspendTick();
+}
+
+/* Called by FreeRTOS right after waking */
+void PostSleepProcessing(uint32_t *ulExpectedIdleTime)
+{
+  (void)ulExpectedIdleTime;
+  HAL_ResumeTick();
+}
 
 /* Print over UART; the mutex stops two tasks interleaving their output */
 static void uart_print(const char *msg)
@@ -43,7 +64,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   static uint32_t last_tick = 0;
   if (GPIO_Pin == USER_BTN_Pin)
   {
-    uint32_t now = HAL_GetTick();
+    /* FreeRTOS tick, not HAL_GetTick(): the HAL tick pauses during sleep */
+    uint32_t now = osKernelGetTickCount();
     if ((now - last_tick) > 200)           /* ignore contact bounce */
     {
       last_tick = now;
@@ -65,7 +87,7 @@ void app_led_task(void)
 void app_logger_task(void)
 {
   int16_t temp;
-  char msg[48];
+  char msg[64];
   for(;;)
   {
     if (osMessageQueueGet(tempQueueHandle, &temp, NULL, osWaitForever) == osOK)
@@ -83,6 +105,15 @@ void app_logger_task(void)
                  (temp < 0 && whole == 0) ? "-" : "", whole, frac);
       }
       uart_print(msg);
+
+#if SHOW_SLEEP_STATS
+      {
+        snprintf(msg, sizeof(msg), "  sleep entries: %lu, uptime: %lu s\r\n",
+                 (unsigned long)g_sleep_entries,
+                 (unsigned long)(osKernelGetTickCount() / 1000U));
+        uart_print(msg);
+      }
+#endif
     }
   }
 }
