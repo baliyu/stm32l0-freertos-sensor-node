@@ -15,5 +15,8 @@ Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa
 - With FreeRTOS, the HAL needs its own timebase (TIM21) because the scheduler takes over SysTick; after `osKernelStart()` the `while (1)` loop in `main()` is never reached.
 - The TIM2 prescaler set in CubeMX didn't save (generated as 0), which would have made every 1-Wire delay 32x too short; fixed by re-initialising the timer at 1 MHz inside a USER CODE block so regeneration can't undo it.
 - Producer–consumer with an RTOS queue: the sensor task produces readings, the logger blocks on the queue (osWaitForever) and uses no CPU while waiting.
+- A binary semaphore holds at most one pending signal, so repeated button presses during a reading trigger only one extra reading.
+- CubeMX creates semaphores with an initial count of 1; the task drains it at start-up so only real presses count.
+- The ISR does the minimum (debounce check, release semaphore); the work happens in the task.
 ## Tools
 STM32CubeMX · STM32CubeIDE 2.x · STM32 HAL · Git · PuTTY
