@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,6 +46,8 @@ RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi1;
 
+TIM_HandleTypeDef htim2;
+
 UART_HandleTypeDef huart2;
 
 /* Definitions for ledTask */
@@ -61,6 +64,18 @@ const osThreadAttr_t uartTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for sensorTask */
+osThreadId_t sensorTaskHandle;
+const osThreadAttr_t sensorTask_attributes = {
+  .name = "sensorTask",
+  .stack_size = 192 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for tempQueue */
+osMessageQueueId_t tempQueueHandle;
+const osMessageQueueAttr_t tempQueue_attributes = {
+  .name = "tempQueue"
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -71,8 +86,10 @@ static void MX_GPIO_Init(void);
 static void MX_RTC_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM2_Init(void);
 void StartLedTask(void *argument);
 void StartUartTask(void *argument);
+void StartSensorTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -80,6 +97,87 @@ void StartUartTask(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/* ---------- Microsecond delay using TIM2 (1 tick = 1 us) ---------- */
+static void delay_us(uint16_t us)
+{
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  while (__HAL_TIM_GET_COUNTER(&htim2) < us) { }
+}
+
+/* ---------- 1-Wire low-level (open-drain pin, external pull-up) ---------- */
+static inline void ow_low(void)     { HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, GPIO_PIN_RESET); }
+static inline void ow_release(void) { HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, GPIO_PIN_SET); }
+static inline uint8_t ow_read_pin(void) { return HAL_GPIO_ReadPin(DS18B20_GPIO_Port, DS18B20_Pin); }
+
+/* Reset pulse; returns 1 if a sensor answered with a presence pulse */
+static uint8_t ow_reset(void)
+{
+  uint8_t presence;
+  taskENTER_CRITICAL();
+  ow_low();
+  delay_us(480);
+  ow_release();
+  delay_us(70);
+  presence = (ow_read_pin() == GPIO_PIN_RESET);
+  taskEXIT_CRITICAL();
+  delay_us(410);
+  return presence;
+}
+
+static void ow_write_bit(uint8_t bit)
+{
+  taskENTER_CRITICAL();
+  ow_low();
+  if (bit) { delay_us(6);  ow_release(); delay_us(64); }
+  else     { delay_us(60); ow_release(); delay_us(10); }
+  taskEXIT_CRITICAL();
+}
+
+static uint8_t ow_read_bit(void)
+{
+  uint8_t bit;
+  taskENTER_CRITICAL();
+  ow_low();
+  delay_us(6);
+  ow_release();
+  delay_us(9);
+  bit = (ow_read_pin() == GPIO_PIN_SET);
+  taskEXIT_CRITICAL();
+  delay_us(55);
+  return bit;
+}
+
+static void ow_write_byte(uint8_t byte)
+{
+  for (int i = 0; i < 8; i++) { ow_write_bit(byte & 0x01); byte >>= 1; }
+}
+
+static uint8_t ow_read_byte(void)
+{
+  uint8_t byte = 0;
+  for (int i = 0; i < 8; i++) { if (ow_read_bit()) byte |= (1 << i); }
+  return byte;
+}
+
+/* Read temperature in hundredths of a degree C (e.g. 2312 = 23.12 C).
+   Returns INT16_MIN if no sensor is found. */
+static int16_t ds18b20_read_centi(void)
+{
+  if (!ow_reset()) return INT16_MIN;
+  ow_write_byte(0xCC);          /* Skip ROM (only one sensor on the bus) */
+  ow_write_byte(0x44);          /* Start temperature conversion */
+  osDelay(750);                 /* 12-bit conversion takes up to 750 ms; other tasks run meanwhile */
+
+  if (!ow_reset()) return INT16_MIN;
+  ow_write_byte(0xCC);          /* Skip ROM */
+  ow_write_byte(0xBE);          /* Read scratchpad */
+  uint8_t lsb = ow_read_byte();
+  uint8_t msb = ow_read_byte();
+
+  int16_t raw = (int16_t)((msb << 8) | lsb);   /* units of 1/16 C */
+  return (int16_t)((raw * 100) / 16);
+}
 
 /* USER CODE END 0 */
 
@@ -115,8 +213,9 @@ int main(void)
   MX_RTC_Init();
   MX_SPI1_Init();
   MX_USART2_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_TIM_Base_Start(&htim2);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -134,6 +233,10 @@ int main(void)
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* creation of tempQueue */
+  tempQueueHandle = osMessageQueueNew (4, sizeof(uint16_t), &tempQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -144,6 +247,9 @@ int main(void)
 
   /* creation of uartTask */
   uartTaskHandle = osThreadNew(StartUartTask, NULL, &uartTask_attributes);
+
+  /* creation of sensorTask */
+  sensorTaskHandle = osThreadNew(StartSensorTask, NULL, &sensorTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -165,9 +271,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    HAL_UART_Transmit(&huart2, (uint8_t*)"blink\r\n", 7, 100);
-    HAL_Delay(500);
   }
   /* USER CODE END 3 */
 }
@@ -346,6 +449,56 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 65535;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+  /* Force 1 MHz tick (32 MHz / (31+1)) for microsecond delays */
+  htim2.Init.Prescaler = 31;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -404,6 +557,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, PC1_RESERVED_Pin|PC0_RESERVED_Pin|PC2_RESERVED_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, GPIO_PIN_SET);
+
   /*Configure GPIO pins : PA15_RESERVED_Pin PA12_RESERVED_Pin PA1_RESERVED_Pin */
   GPIO_InitStruct.Pin = PA15_RESERVED_Pin|PA12_RESERVED_Pin|PA1_RESERVED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -429,6 +585,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : DS18B20_Pin */
+  GPIO_InitStruct.Pin = DS18B20_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(DS18B20_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin = LD2_Pin;
@@ -474,7 +637,7 @@ void StartLedTask(void *argument)
 
 /* USER CODE BEGIN Header_StartUartTask */
 /**
-* @brief Function implementing the uartTask thread.
+* @brief Function implementing the uartTask thread (now the logger).
 * @param argument: Not used
 * @retval None
 */
@@ -482,16 +645,51 @@ void StartLedTask(void *argument)
 void StartUartTask(void *argument)
 {
   /* USER CODE BEGIN StartUartTask */
-  uint32_t count = 0;
-  char msg[32];
+  int16_t temp;
+  char msg[48];
   /* Infinite loop */
   for(;;)
   {
-    int len = snprintf(msg, sizeof(msg), "tick %lu\r\n", count++);
-    HAL_UART_Transmit(&huart2, (uint8_t*)msg, len, 100);
-    osDelay(1000);
+    /* Block until the sensor task sends a reading */
+    if (osMessageQueueGet(tempQueueHandle, &temp, NULL, osWaitForever) == osOK)
+    {
+      int len;
+      if (temp == INT16_MIN)
+      {
+        len = snprintf(msg, sizeof(msg), "Sensor not found - check wiring\r\n");
+      }
+      else
+      {
+        int whole = temp / 100;
+        int frac  = temp % 100;
+        if (frac < 0) frac = -frac;
+        len = snprintf(msg, sizeof(msg), "Temp: %s%d.%02d C\r\n",
+                       (temp < 0 && whole == 0) ? "-" : "", whole, frac);
+      }
+      HAL_UART_Transmit(&huart2, (uint8_t*)msg, len, 100);
+    }
   }
   /* USER CODE END StartUartTask */
+}
+
+/* USER CODE BEGIN Header_StartSensorTask */
+/**
+* @brief Function implementing the sensorTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartSensorTask */
+void StartSensorTask(void *argument)
+{
+  /* USER CODE BEGIN StartSensorTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    int16_t temp = ds18b20_read_centi();
+    osMessageQueuePut(tempQueueHandle, &temp, 0, 0);   /* send to logger */
+    osDelay(2000);                                      /* read every ~2 s */
+  }
+  /* USER CODE END StartSensorTask */
 }
 
 /**

@@ -84,6 +84,8 @@ void Error_Handler(void);
 #define PA7_RESERVED_GPIO_Port GPIOA
 #define STLINK_RX_Pin GPIO_PIN_2
 #define STLINK_RX_GPIO_Port GPIOA
+#define DS18B20_Pin GPIO_PIN_12
+#define DS18B20_GPIO_Port GPIOB
 #define PB0_RESERVED_Pin GPIO_PIN_0
 #define PB0_RESERVED_GPIO_Port GPIOB
 #define PB0_RESERVED_EXTI_IRQn EXTI0_1_IRQn
