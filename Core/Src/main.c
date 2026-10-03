@@ -4,16 +4,6 @@
   * @file           : main.c
   * @brief          : Main program body
   ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -34,7 +24,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define SIMULATE_SENSOR_HANG 0   /* set to 1 to test the watchdog */
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,6 +33,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+IWDG_HandleTypeDef hiwdg;
+
 RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi1;
@@ -72,6 +64,13 @@ const osThreadAttr_t sensorTask_attributes = {
   .stack_size = 192 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for wdgTask */
+osThreadId_t wdgTaskHandle;
+const osThreadAttr_t wdgTask_attributes = {
+  .name = "wdgTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
+};
 /* Definitions for tempQueue */
 osMessageQueueId_t tempQueueHandle;
 const osMessageQueueAttr_t tempQueue_attributes = {
@@ -87,6 +86,11 @@ osSemaphoreId_t buttonSemHandle;
 const osSemaphoreAttr_t buttonSem_attributes = {
   .name = "buttonSem"
 };
+/* Definitions for wdgFlags */
+osEventFlagsId_t wdgFlagsHandle;
+const osEventFlagsAttr_t wdgFlags_attributes = {
+  .name = "wdgFlags"
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -98,9 +102,11 @@ static void MX_RTC_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_IWDG_Init(void);
 void StartLedTask(void *argument);
 void StartUartTask(void *argument);
 void StartSensorTask(void *argument);
+void StartWdgTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -178,7 +184,7 @@ static int16_t ds18b20_read_centi(void)
   if (!ow_reset()) return INT16_MIN;
   ow_write_byte(0xCC);          /* Skip ROM (only one sensor on the bus) */
   ow_write_byte(0x44);          /* Start temperature conversion */
-  osDelay(750);                 /* 12-bit conversion takes up to 750 ms; other tasks run meanwhile */
+  osDelay(750);                 /* 12-bit conversion takes up to 750 ms */
 
   if (!ow_reset()) return INT16_MIN;
   ow_write_byte(0xCC);          /* Skip ROM */
@@ -225,8 +231,17 @@ int main(void)
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   MX_TIM2_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim2);
+
+  /* Report whether the previous reset was caused by the watchdog */
+  if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
+  {
+    const char *m = "*** Last reset was caused by the WATCHDOG ***\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t*)m, strlen(m), 100);
+  }
+  __HAL_RCC_CLEAR_RESET_FLAGS();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -269,9 +284,16 @@ int main(void)
   /* creation of sensorTask */
   sensorTaskHandle = osThreadNew(StartSensorTask, NULL, &sensorTask_attributes);
 
+  /* creation of wdgTask */
+  wdgTaskHandle = osThreadNew(StartWdgTask, NULL, &wdgTask_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
+
+  /* Create the event(s) */
+  /* creation of wdgFlags */
+  wdgFlagsHandle = osEventFlagsNew(&wdgFlags_attributes);
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
@@ -343,6 +365,35 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief IWDG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IWDG_Init(void)
+{
+
+  /* USER CODE BEGIN IWDG_Init 0 */
+
+  /* USER CODE END IWDG_Init 0 */
+
+  /* USER CODE BEGIN IWDG_Init 1 */
+
+  /* USER CODE END IWDG_Init 1 */
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_64;
+  hiwdg.Init.Window = 4095;
+  hiwdg.Init.Reload = 4095;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IWDG_Init 2 */
+
+  /* USER CODE END IWDG_Init 2 */
+
 }
 
 /**
@@ -674,6 +725,7 @@ void StartLedTask(void *argument)
   for(;;)
   {
     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    osEventFlagsSet(wdgFlagsHandle, 0x01U);      /* heartbeat: LED task alive */
     osDelay(250);
   }
   /* USER CODE END 5 */
@@ -728,9 +780,15 @@ void StartSensorTask(void *argument)
   /* CubeMX creates the semaphore with count 1: drain it so only real presses count */
   osSemaphoreAcquire(buttonSemHandle, 0);
 
+#if SIMULATE_SENSOR_HANG
+  uint8_t cycles = 0;
+#endif
+
   /* Infinite loop */
   for(;;)
   {
+    osEventFlagsSet(wdgFlagsHandle, 0x02U);      /* heartbeat: sensor task alive */
+
     int16_t temp = ds18b20_read_centi();
     osMessageQueuePut(tempQueueHandle, &temp, 0, 0);   /* send to logger */
 
@@ -739,8 +797,43 @@ void StartSensorTask(void *argument)
     {
       uart_print("Button pressed - reading now\r\n");
     }
+
+#if SIMULATE_SENSOR_HANG
+    if (++cycles >= 5)
+    {
+      uart_print("Simulating a hung sensor task...\r\n");
+      for(;;) { }                                /* task stops sending heartbeats */
+    }
+#endif
   }
   /* USER CODE END StartSensorTask */
+}
+
+/* USER CODE BEGIN Header_StartWdgTask */
+/**
+* @brief Function implementing the wdgTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartWdgTask */
+void StartWdgTask(void *argument)
+{
+  /* USER CODE BEGIN StartWdgTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    /* Wait up to 4 s for BOTH heartbeats (bit0 = LED, bit1 = sensor) */
+    uint32_t res = osEventFlagsWait(wdgFlagsHandle, 0x03U, osFlagsWaitAll, 4000);
+    if ((res & 0x80000000U) == 0)                /* no error: both flags arrived */
+    {
+      HAL_IWDG_Refresh(&hiwdg);                  /* all healthy: feed the watchdog */
+    }
+    else
+    {
+      uart_print("Watchdog: heartbeat missing - NOT refreshing\r\n");
+    }
+  }
+  /* USER CODE END StartWdgTask */
 }
 
 /**
@@ -780,18 +873,10 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
