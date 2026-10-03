@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -75,6 +76,16 @@ const osThreadAttr_t sensorTask_attributes = {
 osMessageQueueId_t tempQueueHandle;
 const osMessageQueueAttr_t tempQueue_attributes = {
   .name = "tempQueue"
+};
+/* Definitions for uartMutex */
+osMutexId_t uartMutexHandle;
+const osMutexAttr_t uartMutex_attributes = {
+  .name = "uartMutex"
+};
+/* Definitions for buttonSem */
+osSemaphoreId_t buttonSemHandle;
+const osSemaphoreAttr_t buttonSem_attributes = {
+  .name = "buttonSem"
 };
 /* USER CODE BEGIN PV */
 
@@ -220,10 +231,17 @@ int main(void)
 
   /* Init scheduler */
   osKernelInitialize();
+  /* Create the mutex(es) */
+  /* creation of uartMutex */
+  uartMutexHandle = osMutexNew(&uartMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* creation of buttonSem */
+  buttonSemHandle = osSemaphoreNew(1, 1, &buttonSem_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -567,8 +585,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB4_RESERVED_Pin PB1_RESERVED_Pin PB0_RESERVED_Pin */
-  GPIO_InitStruct.Pin = PB4_RESERVED_Pin|PB1_RESERVED_Pin|PB0_RESERVED_Pin;
+  /*Configure GPIO pins : PB4_RESERVED_Pin PB1_RESERVED_Pin USER_BTN_Pin PB0_RESERVED_Pin */
+  GPIO_InitStruct.Pin = PB4_RESERVED_Pin|PB1_RESERVED_Pin|USER_BTN_Pin|PB0_RESERVED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -604,6 +622,9 @@ static void MX_GPIO_Init(void)
   HAL_NVIC_SetPriority(EXTI0_1_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);
 
+  HAL_NVIC_SetPriority(EXTI2_3_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_3_IRQn);
+
   HAL_NVIC_SetPriority(EXTI4_15_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
@@ -613,6 +634,29 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+/* Print a string over UART; the mutex stops two tasks interleaving output */
+static void uart_print(const char *msg)
+{
+  osMutexAcquire(uartMutexHandle, osWaitForever);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), 100);
+  osMutexRelease(uartMutexHandle);
+}
+
+/* Runs in interrupt context when the USER button is pressed */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  static uint32_t last_tick = 0;
+  if (GPIO_Pin == USER_BTN_Pin)
+  {
+    uint32_t now = HAL_GetTick();
+    if ((now - last_tick) > 200)           /* ignore contact bounce */
+    {
+      last_tick = now;
+      osSemaphoreRelease(buttonSemHandle); /* wakes the sensor task */
+    }
+  }
+}
 
 /* USER CODE END 4 */
 
@@ -653,20 +697,19 @@ void StartUartTask(void *argument)
     /* Block until the sensor task sends a reading */
     if (osMessageQueueGet(tempQueueHandle, &temp, NULL, osWaitForever) == osOK)
     {
-      int len;
       if (temp == INT16_MIN)
       {
-        len = snprintf(msg, sizeof(msg), "Sensor not found - check wiring\r\n");
+        snprintf(msg, sizeof(msg), "Sensor not found - check wiring\r\n");
       }
       else
       {
         int whole = temp / 100;
         int frac  = temp % 100;
         if (frac < 0) frac = -frac;
-        len = snprintf(msg, sizeof(msg), "Temp: %s%d.%02d C\r\n",
-                       (temp < 0 && whole == 0) ? "-" : "", whole, frac);
+        snprintf(msg, sizeof(msg), "Temp: %s%d.%02d C\r\n",
+                 (temp < 0 && whole == 0) ? "-" : "", whole, frac);
       }
-      HAL_UART_Transmit(&huart2, (uint8_t*)msg, len, 100);
+      uart_print(msg);
     }
   }
   /* USER CODE END StartUartTask */
@@ -682,12 +725,20 @@ void StartUartTask(void *argument)
 void StartSensorTask(void *argument)
 {
   /* USER CODE BEGIN StartSensorTask */
+  /* CubeMX creates the semaphore with count 1: drain it so only real presses count */
+  osSemaphoreAcquire(buttonSemHandle, 0);
+
   /* Infinite loop */
   for(;;)
   {
     int16_t temp = ds18b20_read_centi();
     osMessageQueuePut(tempQueueHandle, &temp, 0, 0);   /* send to logger */
-    osDelay(2000);                                      /* read every ~2 s */
+
+    /* Wait up to 2 s; a button press wakes us early for an immediate reading */
+    if (osSemaphoreAcquire(buttonSemHandle, 2000) == osOK)
+    {
+      uart_print("Button pressed - reading now\r\n");
+    }
   }
   /* USER CODE END StartSensorTask */
 }
