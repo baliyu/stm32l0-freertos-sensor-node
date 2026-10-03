@@ -1,0 +1,135 @@
+#include "app.h"
+#include "ds18b20.h"
+#include "main.h"
+#include "cmsis_os.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+
+#define SIMULATE_SENSOR_HANG 0   /* set to 1 to test the watchdog */
+
+#define HB_LED    0x01U          /* heartbeat bits for the watchdog */
+#define HB_SENSOR 0x02U
+
+/* Objects created by CubeMX in main.c */
+extern UART_HandleTypeDef huart2;
+extern IWDG_HandleTypeDef hiwdg;
+extern osMessageQueueId_t tempQueueHandle;
+extern osMutexId_t        uartMutexHandle;
+extern osSemaphoreId_t    buttonSemHandle;
+extern osEventFlagsId_t   wdgFlagsHandle;
+
+/* Print over UART; the mutex stops two tasks interleaving their output */
+static void uart_print(const char *msg)
+{
+  osMutexAcquire(uartMutexHandle, osWaitForever);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), 100);
+  osMutexRelease(uartMutexHandle);
+}
+
+void app_report_reset_cause(void)
+{
+  if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
+  {
+    const char *m = "*** Last reset was caused by the WATCHDOG ***\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t*)m, strlen(m), 100);
+  }
+  __HAL_RCC_CLEAR_RESET_FLAGS();
+}
+
+/* Interrupt context: the USER button was pressed */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  static uint32_t last_tick = 0;
+  if (GPIO_Pin == USER_BTN_Pin)
+  {
+    uint32_t now = HAL_GetTick();
+    if ((now - last_tick) > 200)           /* ignore contact bounce */
+    {
+      last_tick = now;
+      osSemaphoreRelease(buttonSemHandle); /* wakes the sensor task */
+    }
+  }
+}
+
+void app_led_task(void)
+{
+  for(;;)
+  {
+    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    osEventFlagsSet(wdgFlagsHandle, HB_LED);
+    osDelay(250);
+  }
+}
+
+void app_logger_task(void)
+{
+  int16_t temp;
+  char msg[48];
+  for(;;)
+  {
+    if (osMessageQueueGet(tempQueueHandle, &temp, NULL, osWaitForever) == osOK)
+    {
+      if (temp == DS18B20_NOT_FOUND)
+      {
+        snprintf(msg, sizeof(msg), "Sensor not found - check wiring\r\n");
+      }
+      else
+      {
+        int whole = temp / 100;
+        int frac  = temp % 100;
+        if (frac < 0) frac = -frac;
+        snprintf(msg, sizeof(msg), "Temp: %s%d.%02d C\r\n",
+                 (temp < 0 && whole == 0) ? "-" : "", whole, frac);
+      }
+      uart_print(msg);
+    }
+  }
+}
+
+void app_sensor_task(void)
+{
+  /* CubeMX creates the semaphore with count 1: drain it so only real presses count */
+  osSemaphoreAcquire(buttonSemHandle, 0);
+
+#if SIMULATE_SENSOR_HANG
+  uint8_t cycles = 0;
+#endif
+
+  for(;;)
+  {
+    osEventFlagsSet(wdgFlagsHandle, HB_SENSOR);
+
+    int16_t temp = ds18b20_read_centi();
+    osMessageQueuePut(tempQueueHandle, &temp, 0, 0);
+
+    if (osSemaphoreAcquire(buttonSemHandle, 2000) == osOK)
+    {
+      uart_print("Button pressed - reading now\r\n");
+    }
+
+#if SIMULATE_SENSOR_HANG
+    if (++cycles >= 5)
+    {
+      uart_print("Simulating a hung sensor task...\r\n");
+      for(;;) { }
+    }
+#endif
+  }
+}
+
+void app_watchdog_task(void)
+{
+  for(;;)
+  {
+    uint32_t res = osEventFlagsWait(wdgFlagsHandle, HB_LED | HB_SENSOR, osFlagsWaitAll, 4000);
+    if ((res & 0x80000000U) == 0)
+    {
+      HAL_IWDG_Refresh(&hiwdg);            /* all tasks healthy: feed the watchdog */
+    }
+    else
+    {
+      uart_print("Watchdog: heartbeat missing - NOT refreshing\r\n");
+    }
+  }
+}

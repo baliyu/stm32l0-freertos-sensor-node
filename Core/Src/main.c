@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include "app.h"
+#include "ds18b20.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -24,7 +26,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SIMULATE_SENSOR_HANG 0   /* set to 1 to test the watchdog */
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -115,87 +117,6 @@ void StartWdgTask(void *argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-/* ---------- Microsecond delay using TIM2 (1 tick = 1 us) ---------- */
-static void delay_us(uint16_t us)
-{
-  __HAL_TIM_SET_COUNTER(&htim2, 0);
-  while (__HAL_TIM_GET_COUNTER(&htim2) < us) { }
-}
-
-/* ---------- 1-Wire low-level (open-drain pin, external pull-up) ---------- */
-static inline void ow_low(void)     { HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, GPIO_PIN_RESET); }
-static inline void ow_release(void) { HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, GPIO_PIN_SET); }
-static inline uint8_t ow_read_pin(void) { return HAL_GPIO_ReadPin(DS18B20_GPIO_Port, DS18B20_Pin); }
-
-/* Reset pulse; returns 1 if a sensor answered with a presence pulse */
-static uint8_t ow_reset(void)
-{
-  uint8_t presence;
-  taskENTER_CRITICAL();
-  ow_low();
-  delay_us(480);
-  ow_release();
-  delay_us(70);
-  presence = (ow_read_pin() == GPIO_PIN_RESET);
-  taskEXIT_CRITICAL();
-  delay_us(410);
-  return presence;
-}
-
-static void ow_write_bit(uint8_t bit)
-{
-  taskENTER_CRITICAL();
-  ow_low();
-  if (bit) { delay_us(6);  ow_release(); delay_us(64); }
-  else     { delay_us(60); ow_release(); delay_us(10); }
-  taskEXIT_CRITICAL();
-}
-
-static uint8_t ow_read_bit(void)
-{
-  uint8_t bit;
-  taskENTER_CRITICAL();
-  ow_low();
-  delay_us(6);
-  ow_release();
-  delay_us(9);
-  bit = (ow_read_pin() == GPIO_PIN_SET);
-  taskEXIT_CRITICAL();
-  delay_us(55);
-  return bit;
-}
-
-static void ow_write_byte(uint8_t byte)
-{
-  for (int i = 0; i < 8; i++) { ow_write_bit(byte & 0x01); byte >>= 1; }
-}
-
-static uint8_t ow_read_byte(void)
-{
-  uint8_t byte = 0;
-  for (int i = 0; i < 8; i++) { if (ow_read_bit()) byte |= (1 << i); }
-  return byte;
-}
-
-/* Read temperature in hundredths of a degree C (e.g. 2312 = 23.12 C).
-   Returns INT16_MIN if no sensor is found. */
-static int16_t ds18b20_read_centi(void)
-{
-  if (!ow_reset()) return INT16_MIN;
-  ow_write_byte(0xCC);          /* Skip ROM (only one sensor on the bus) */
-  ow_write_byte(0x44);          /* Start temperature conversion */
-  osDelay(750);                 /* 12-bit conversion takes up to 750 ms */
-
-  if (!ow_reset()) return INT16_MIN;
-  ow_write_byte(0xCC);          /* Skip ROM */
-  ow_write_byte(0xBE);          /* Read scratchpad */
-  uint8_t lsb = ow_read_byte();
-  uint8_t msb = ow_read_byte();
-
-  int16_t raw = (int16_t)((msb << 8) | lsb);   /* units of 1/16 C */
-  return (int16_t)((raw * 100) / 16);
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -233,15 +154,8 @@ int main(void)
   MX_TIM2_Init();
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start(&htim2);
-
-  /* Report whether the previous reset was caused by the watchdog */
-  if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
-  {
-    const char *m = "*** Last reset was caused by the WATCHDOG ***\r\n";
-    HAL_UART_Transmit(&huart2, (uint8_t*)m, strlen(m), 100);
-  }
-  __HAL_RCC_CLEAR_RESET_FLAGS();
+  ds18b20_init();
+  app_report_reset_cause();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -686,29 +600,6 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-/* Print a string over UART; the mutex stops two tasks interleaving output */
-static void uart_print(const char *msg)
-{
-  osMutexAcquire(uartMutexHandle, osWaitForever);
-  HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), 100);
-  osMutexRelease(uartMutexHandle);
-}
-
-/* Runs in interrupt context when the USER button is pressed */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  static uint32_t last_tick = 0;
-  if (GPIO_Pin == USER_BTN_Pin)
-  {
-    uint32_t now = HAL_GetTick();
-    if ((now - last_tick) > 200)           /* ignore contact bounce */
-    {
-      last_tick = now;
-      osSemaphoreRelease(buttonSemHandle); /* wakes the sensor task */
-    }
-  }
-}
-
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartLedTask */
@@ -721,13 +612,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 void StartLedTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    osEventFlagsSet(wdgFlagsHandle, 0x01U);      /* heartbeat: LED task alive */
-    osDelay(250);
-  }
+  app_led_task();
   /* USER CODE END 5 */
 }
 
@@ -741,29 +626,7 @@ void StartLedTask(void *argument)
 void StartUartTask(void *argument)
 {
   /* USER CODE BEGIN StartUartTask */
-  int16_t temp;
-  char msg[48];
-  /* Infinite loop */
-  for(;;)
-  {
-    /* Block until the sensor task sends a reading */
-    if (osMessageQueueGet(tempQueueHandle, &temp, NULL, osWaitForever) == osOK)
-    {
-      if (temp == INT16_MIN)
-      {
-        snprintf(msg, sizeof(msg), "Sensor not found - check wiring\r\n");
-      }
-      else
-      {
-        int whole = temp / 100;
-        int frac  = temp % 100;
-        if (frac < 0) frac = -frac;
-        snprintf(msg, sizeof(msg), "Temp: %s%d.%02d C\r\n",
-                 (temp < 0 && whole == 0) ? "-" : "", whole, frac);
-      }
-      uart_print(msg);
-    }
-  }
+  app_logger_task();
   /* USER CODE END StartUartTask */
 }
 
@@ -777,35 +640,7 @@ void StartUartTask(void *argument)
 void StartSensorTask(void *argument)
 {
   /* USER CODE BEGIN StartSensorTask */
-  /* CubeMX creates the semaphore with count 1: drain it so only real presses count */
-  osSemaphoreAcquire(buttonSemHandle, 0);
-
-#if SIMULATE_SENSOR_HANG
-  uint8_t cycles = 0;
-#endif
-
-  /* Infinite loop */
-  for(;;)
-  {
-    osEventFlagsSet(wdgFlagsHandle, 0x02U);      /* heartbeat: sensor task alive */
-
-    int16_t temp = ds18b20_read_centi();
-    osMessageQueuePut(tempQueueHandle, &temp, 0, 0);   /* send to logger */
-
-    /* Wait up to 2 s; a button press wakes us early for an immediate reading */
-    if (osSemaphoreAcquire(buttonSemHandle, 2000) == osOK)
-    {
-      uart_print("Button pressed - reading now\r\n");
-    }
-
-#if SIMULATE_SENSOR_HANG
-    if (++cycles >= 5)
-    {
-      uart_print("Simulating a hung sensor task...\r\n");
-      for(;;) { }                                /* task stops sending heartbeats */
-    }
-#endif
-  }
+  app_sensor_task();
   /* USER CODE END StartSensorTask */
 }
 
@@ -819,20 +654,7 @@ void StartSensorTask(void *argument)
 void StartWdgTask(void *argument)
 {
   /* USER CODE BEGIN StartWdgTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    /* Wait up to 4 s for BOTH heartbeats (bit0 = LED, bit1 = sensor) */
-    uint32_t res = osEventFlagsWait(wdgFlagsHandle, 0x03U, osFlagsWaitAll, 4000);
-    if ((res & 0x80000000U) == 0)                /* no error: both flags arrived */
-    {
-      HAL_IWDG_Refresh(&hiwdg);                  /* all healthy: feed the watchdog */
-    }
-    else
-    {
-      uart_print("Watchdog: heartbeat missing - NOT refreshing\r\n");
-    }
-  }
+  app_watchdog_task();
   /* USER CODE END StartWdgTask */
 }
 
