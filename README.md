@@ -57,7 +57,7 @@ Output: `build/Debug/l072_blinky.elf`.
 - The ST-LINK virtual COM port can go stale after replugging USB; close and reopen the terminal, and a replug can fix a blank console.
 - Restarting the frame counter after a reset reused AES-CTR keystreams: captured packets with the same counter were identical, and two differed by exactly the XOR of their plaintexts. Persisting the counter (reserve-before-use) fixed it.
 - Round-trip tests only prove both ends agree; known-answer vectors (FIPS-197, RFC 4493) prove they match the standard. A planted bug in the CMAC padding constant was caught only by the vectors.
-- Known limitation: the receiver keeps its last accepted counter in RAM, so it would accept one old packet after the receiver itself reboots.
+- Known limitation:Receiver replay floor is stored in flash in steps of 100: after a receiver reboot, up to 100 genuine packets may be rejected (availability vs flash-wear trade-off). Production options: wear-levelling, EEPROM/FRAM, or new session keys per join as in LoRaWAN OTAA.
 
 ## Tools
 STM32CubeMX · STM32CubeIDE 2.x · STM32 HAL · CMake/Ninja · Git · PuTTY · Arduino IDE (receiver)
