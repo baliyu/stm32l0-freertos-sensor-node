@@ -13,11 +13,13 @@
  *   16   4     fw_version   major<<24 | minor<<16 | patch
  *   20   32    sha256       SHA-256 over header bytes 0..19 followed by the application
  *   52   12    reserved     zero
- *   64   64    signature    ECDSA P-256 over sha256 (stage 3; zero until then)
+ *   64   64    signature    ECDSA P-256 signature of sha256: r || s, 32 bytes each, big-endian
  *   128  384   reserved     zero
  *
  * The hash covers the fixed fields as well as the code, so the version and
- * size cannot be changed without the check failing.
+ * size cannot be changed without the check failing. The signature covers the
+ * hash, so nobody without the private key can produce an image that passes:
+ * recomputing the hash after a change is no longer enough.
  */
 #ifndef IMAGE_H
 #define IMAGE_H
@@ -54,14 +56,25 @@ typedef enum {
   IMG_ERR_MAGIC,          /* no header: empty slot or a raw (unwrapped) app */
   IMG_ERR_FIELDS,         /* header version/size fields out of range */
   IMG_ERR_HASH,           /* image or header modified/corrupted */
-  IMG_ERR_VECTORS         /* hash fine but the app's vector table is implausible */
+  IMG_ERR_SIGNATURE,      /* hash consistent, but not signed by the trusted key */
+  IMG_ERR_VECTORS         /* signed, but the app's vector table is implausible */
 } img_result;
 
-/* Check the image in a slot. slot points at the slot's first byte (on the
- * target: (const uint8_t *)SLOT_A_BASE; in tests: a RAM copy). slot_addr is
- * the address the slot lives at, for checking the vector table. On return,
- * digest holds the computed hash (useful for printing). */
-img_result image_verify(const uint8_t *slot, uint32_t slot_addr, uint8_t digest[32]);
+/* The checks, in the order the bootloader runs them. slot points at the
+ * slot's first byte (on the target: (const uint8_t *)SLOT_A_BASE; in tests: a
+ * RAM copy). */
+
+/* Header fields, then SHA-256 over the fixed fields + app; digest receives the hash. */
+img_result image_check_hash(const uint8_t *slot, uint8_t digest[32]);
+
+/* ECDSA P-256 signature in the header over digest, with the trusted public key (X||Y). */
+img_result image_check_signature(const uint8_t *slot, const uint8_t digest[32], const uint8_t pubkey[64]);
+
+/* Plausible Cortex-M vector table; slot_addr is where the slot lives. */
+img_result image_check_vectors(const uint8_t *slot, uint32_t slot_addr);
+
+/* All of the above. */
+img_result image_verify(const uint8_t *slot, uint32_t slot_addr, const uint8_t pubkey[64], uint8_t digest[32]);
 
 const char *image_result_str(img_result r);
 

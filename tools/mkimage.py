@@ -7,6 +7,10 @@ Output: <out>.bin  header + app, to be written at 0x08006000 (slot A)
         <out>.hex  the same with addresses included (safer to flash: the
                    programmer cannot put it at the wrong address)
 
+Signing: with --key, the SHA-256 is signed with ECDSA P-256 and the 64-byte
+signature (r || s, big-endian) goes into the header at offset 64. Without
+--key the image is UNSIGNED and a stage-3 bootloader will refuse it.
+
 Header format: see bootloader/image.h. This tool and the bootloader must agree
 on every byte; the host test in bootloader/test checks that they do.
 """
@@ -15,10 +19,18 @@ import hashlib
 import struct
 import sys
 
+try:
+    from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import ec, utils
+except ImportError:
+    sys.exit("error: needs the 'cryptography' package:  pip install cryptography")
+
 IMG_MAGIC = 0x31484253          # 'S','B','H','1' in memory (little-endian)
 IMG_HDR_VERSION = 1
 IMG_HDR_SIZE = 0x200
 IMG_FIXED_LEN = 20
+SIG_OFFSET = 64
 SLOT_A_BASE = 0x08006000
 SLOT_SIZE = 0x12000             # 72 KB
 APP_BASE = SLOT_A_BASE + IMG_HDR_SIZE
@@ -50,9 +62,25 @@ def build_header(app, version):
     fixed = struct.pack("<IIIII", IMG_MAGIC, IMG_HDR_VERSION, IMG_HDR_SIZE, len(app), version)
     assert len(fixed) == IMG_FIXED_LEN
     digest = hashlib.sha256(fixed + app).digest()
-    header = fixed + digest + bytes(12) + bytes(64) + bytes(IMG_HDR_SIZE - 128)
+    header = bytearray(fixed + digest + bytes(12) + bytes(64) + bytes(IMG_HDR_SIZE - 128))
     assert len(header) == IMG_HDR_SIZE
     return header, digest
+
+
+def sign_digest(key_path, digest):
+    with open(key_path, "rb") as f:
+        key = serialization.load_pem_private_key(f.read(), password=None)
+    der = key.sign(digest, ec.ECDSA(utils.Prehashed(hashes.SHA256())))
+    r, s = utils.decode_dss_signature(der)
+    sig = r.to_bytes(32, "big") + s.to_bytes(32, "big")
+    # Self-check: verify with the public half before writing anything out
+    try:
+        key.public_key().verify(der, digest, ec.ECDSA(utils.Prehashed(hashes.SHA256())))
+    except InvalidSignature:
+        sys.exit("error: signature self-check failed")
+    n = key.public_key().public_numbers()
+    pub = n.x.to_bytes(32, "big") + n.y.to_bytes(32, "big")
+    return sig, hashlib.sha256(pub).hexdigest()[:8]
 
 
 def write_ihex(path, data, base):
@@ -78,8 +106,12 @@ def main():
     ap.add_argument("app_bin", help="application binary linked at 0x08006200")
     ap.add_argument("--version", required=True, help="firmware version, e.g. 1.0.0")
     ap.add_argument("-o", "--out", default="slotA", help="output name without extension (default: slotA)")
+    ap.add_argument("--key", help="private key (PEM) to sign with, e.g. keys/signing_key.pem")
     ap.add_argument("--tamper", type=lambda s: int(s, 0), metavar="OFFSET",
                     help="TEST ONLY: flip one bit at this offset in the app AFTER hashing")
+    ap.add_argument("--tamper-rehash", type=lambda s: int(s, 0), metavar="OFFSET",
+                    help="TEST ONLY: flip one bit in the app and RECOMPUTE the hash, keeping the "
+                         "old signature (what an attacker without the private key could do)")
     args = ap.parse_args()
 
     with open(args.app_bin, "rb") as f:
@@ -94,6 +126,10 @@ def main():
         sys.exit(f"error: {e}")
 
     header, digest = build_header(app, version)
+    key_id = None
+    if args.key:
+        sig, key_id = sign_digest(args.key, digest)
+        header[SIG_OFFSET:SIG_OFFSET + 64] = sig
     image = bytearray(header + app)
 
     if args.tamper is not None:
@@ -102,6 +138,15 @@ def main():
         image[IMG_HDR_SIZE + args.tamper] ^= 0x01
         print(f"WARNING: test image - bit 0 of app byte 0x{args.tamper:X} flipped after hashing")
 
+    if args.tamper_rehash is not None:
+        if not 0 <= args.tamper_rehash < len(app):
+            sys.exit("error: --tamper-rehash offset is outside the app")
+        image[IMG_HDR_SIZE + args.tamper_rehash] ^= 0x01
+        new_digest = hashlib.sha256(bytes(image[:IMG_FIXED_LEN]) + bytes(image[IMG_HDR_SIZE:])).digest()
+        image[IMG_FIXED_LEN:IMG_FIXED_LEN + 32] = new_digest
+        print(f"WARNING: test image - app byte 0x{args.tamper_rehash:X} changed and the hash recomputed;"
+              " the signature is the original one")
+
     with open(args.out + ".bin", "wb") as f:
         f.write(image)
     write_ihex(args.out + ".hex", bytes(image), SLOT_A_BASE)
@@ -109,6 +154,7 @@ def main():
     print(f"app      : {args.app_bin} ({len(app)} bytes, SP=0x{sp:08X}, reset=0x{reset:08X})")
     print(f"version  : {args.version}")
     print(f"sha256   : {digest.hex()}")
+    print(f"signature: " + (f"ECDSA P-256, key id {key_id}" if key_id else "NONE (unsigned image)"))
     print(f"written  : {args.out}.bin / {args.out}.hex  ({len(image)} bytes at 0x{SLOT_A_BASE:08X})")
 
 

@@ -1,0 +1,3 @@
+# PRIVATE signing keys: never commit
+*
+!.gitignore
