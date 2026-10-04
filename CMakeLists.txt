@@ -51,6 +51,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     secure_link/aes128.c
     secure_link/aes_cmac.c
     secure_link/secure_link.c
+    Core/Src/fcnt_eeprom.c
+    secure_link/fcnt_store.c
 )
 
 # Add include paths
