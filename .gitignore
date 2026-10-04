@@ -6,3 +6,8 @@ Release/
 *.map
 *.list
 .settings/
+
+secure_link/secure_link_keys.h
+secure_link/test/test_host
+feather_receiver/*.c
+feather_receiver/*.h
