@@ -9,6 +9,7 @@
 
 #define SIMULATE_SENSOR_HANG 0   /* set to 1 to test the watchdog */
 #define SHOW_SLEEP_STATS     1   /* print how much of the time the CPU sleeps */
+#define TX_EVERY_N           4   /* transmit every Nth reading (868.1 MHz allows 1% duty cycle) */
 
 #define HB_LED    0x01U          /* heartbeat bits for the watchdog */
 #define HB_SENSOR 0x02U
@@ -93,13 +94,20 @@ void app_logger_task(void)
 {
   int16_t temp;
   char msg[64];
+  static char pkt[40];
+  uint32_t reading_count = 0;
+  uint32_t tx_count = 0;
 
-  /* Radio self-test: a working SPI link and radio read back 0x12 */
+  /* Radio start-up: a working SPI link and radio read back 0x12 */
   sx1276_power_on_reset();
   uint8_t ver = sx1276_read_reg(SX1276_REG_VERSION);
   snprintf(msg, sizeof(msg), "SX1276 version: 0x%02X (expect 0x%02X)\r\n",
            ver, SX1276_VERSION_OK);
   uart_print(msg);
+
+  int radio_ok = sx1276_lora_init();
+  uart_print(radio_ok ? "LoRa init OK: 868.1 MHz, SF7, BW125\r\n"
+                      : "LoRa init FAILED\r\n");
 
   for(;;)
   {
@@ -118,6 +126,19 @@ void app_logger_task(void)
                  (temp < 0 && whole == 0) ? "-" : "", whole, frac);
       }
       uart_print(msg);
+
+      /* Send every Nth good reading over LoRa */
+      if (radio_ok && temp != DS18B20_NOT_FOUND && (reading_count++ % TX_EVERY_N) == 0)
+      {
+        int w = temp / 100;
+        int f = temp % 100;
+        if (f < 0) f = -f;
+        int n = snprintf(pkt, sizeof(pkt), "STM32 T=%s%d.%02d n=%lu",
+                         (temp < 0 && w == 0) ? "-" : "", w, f, (unsigned long)(++tx_count));
+        int sent = sx1276_send((const uint8_t *)pkt, (uint8_t)n);
+        snprintf(msg, sizeof(msg), "  TX %s: %s\r\n", sent ? "ok" : "FAILED", pkt);
+        uart_print(msg);
+      }
 
 #if SHOW_SLEEP_STATS
       {
