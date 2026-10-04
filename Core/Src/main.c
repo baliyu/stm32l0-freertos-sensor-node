@@ -534,16 +534,22 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, PA15_RESERVED_Pin|PA12_RESERVED_Pin|PA1_RESERVED_Pin|LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LORA_NSS_GPIO_Port, LORA_NSS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, PC1_RESERVED_Pin|PC0_RESERVED_Pin|PC2_RESERVED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LORA_TCXO_Pin|PA1_RESERVED_Pin|LD2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, PC1_RESERVED_Pin|PC2_RESERVED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LORA_RESET_GPIO_Port, LORA_RESET_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pins : PA15_RESERVED_Pin PA12_RESERVED_Pin PA1_RESERVED_Pin */
-  GPIO_InitStruct.Pin = PA15_RESERVED_Pin|PA12_RESERVED_Pin|PA1_RESERVED_Pin;
+  /*Configure GPIO pins : LORA_NSS_Pin LORA_TCXO_Pin PA1_RESERVED_Pin */
+  GPIO_InitStruct.Pin = LORA_NSS_Pin|LORA_TCXO_Pin|PA1_RESERVED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -561,8 +567,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(PC13_RESERVED_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PC1_RESERVED_Pin PC0_RESERVED_Pin PC2_RESERVED_Pin */
-  GPIO_InitStruct.Pin = PC1_RESERVED_Pin|PC0_RESERVED_Pin|PC2_RESERVED_Pin;
+  /*Configure GPIO pins : PC1_RESERVED_Pin LORA_RESET_Pin PC2_RESERVED_Pin */
+  GPIO_InitStruct.Pin = PC1_RESERVED_Pin|LORA_RESET_Pin|PC2_RESERVED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;

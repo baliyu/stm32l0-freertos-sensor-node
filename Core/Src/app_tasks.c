@@ -1,5 +1,6 @@
 #include "app.h"
 #include "ds18b20.h"
+#include "sx1276.h"
 #include "main.h"
 #include "cmsis_os.h"
 #include <stdio.h>
@@ -50,6 +51,10 @@ static void uart_print(const char *msg)
 
 void app_report_reset_cause(void)
 {
+  /* Always print, before the RTOS starts, so we can see whether the serial link works */
+  const char *b = "\r\n--- BOOT ---\r\n";
+  HAL_UART_Transmit(&huart2, (uint8_t*)b, strlen(b), 100);
+
   if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
   {
     const char *m = "*** Last reset was caused by the WATCHDOG ***\r\n";
@@ -88,6 +93,14 @@ void app_logger_task(void)
 {
   int16_t temp;
   char msg[64];
+
+  /* Radio self-test: a working SPI link and radio read back 0x12 */
+  sx1276_power_on_reset();
+  uint8_t ver = sx1276_read_reg(SX1276_REG_VERSION);
+  snprintf(msg, sizeof(msg), "SX1276 version: 0x%02X (expect 0x%02X)\r\n",
+           ver, SX1276_VERSION_OK);
+  uart_print(msg);
+
   for(;;)
   {
     if (osMessageQueueGet(tempQueueHandle, &temp, NULL, osWaitForever) == osOK)

@@ -57,12 +57,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define PA15_RESERVED_Pin GPIO_PIN_15
-#define PA15_RESERVED_GPIO_Port GPIOA
+#define LORA_NSS_Pin GPIO_PIN_15
+#define LORA_NSS_GPIO_Port GPIOA
 #define PB3_RESERVED_Pin GPIO_PIN_3
 #define PB3_RESERVED_GPIO_Port GPIOB
-#define PA12_RESERVED_Pin GPIO_PIN_12
-#define PA12_RESERVED_GPIO_Port GPIOA
+#define LORA_TCXO_Pin GPIO_PIN_12
+#define LORA_TCXO_GPIO_Port GPIOA
 #define PB4_RESERVED_Pin GPIO_PIN_4
 #define PB4_RESERVED_GPIO_Port GPIOB
 #define PB4_RESERVED_EXTI_IRQn EXTI4_15_IRQn
@@ -71,8 +71,8 @@ void Error_Handler(void);
 #define PC13_RESERVED_EXTI_IRQn EXTI4_15_IRQn
 #define PC1_RESERVED_Pin GPIO_PIN_1
 #define PC1_RESERVED_GPIO_Port GPIOC
-#define PC0_RESERVED_Pin GPIO_PIN_0
-#define PC0_RESERVED_GPIO_Port GPIOC
+#define LORA_RESET_Pin GPIO_PIN_0
+#define LORA_RESET_GPIO_Port GPIOC
 #define PB1_RESERVED_Pin GPIO_PIN_1
 #define PB1_RESERVED_GPIO_Port GPIOB
 #define PB1_RESERVED_EXTI_IRQn EXTI0_1_IRQn

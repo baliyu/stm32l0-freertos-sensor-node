@@ -47,6 +47,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Core/Src/app_tasks.c
     Core/Src/ds18b20.c
+    Core/Src/sx1276.c
 )
 
 # Add include paths
