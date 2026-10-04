@@ -1,6 +1,7 @@
 # STM32L0 FreeRTOS Sensor Node
 
 Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa), built with STM32CubeMX and STM32CubeIDE.
+A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log and is sent over LoRa (868.1 MHz) to an Adafruit Feather M0 receiver.
 
 ## Progress
 - [x] GPIO + UART bring-up: LED toggling and serial output over the ST-LINK virtual COM port (115200 baud)
@@ -10,18 +11,25 @@ Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa
 - [x] Mutex-protected UART shared between tasks
 - [x] Heartbeat-based hardware watchdog (IWDG) with event flags, verified by fault injection
 - [x] Low-power tickless idle: wake-ups cut from ~1,000/s to ~5/s
-- [x] Code split into driver (`ds18b20`) and application (`app`) modules, keeping CubeMX-generated `main.c` clean
+- [x] Code split into driver (`ds18b20`, `sx1276`) and application (`app_tasks`) modules, keeping CubeMX-generated `main.c` clean
 - [x] CMake / arm-none-eabi-gcc command-line build (Ninja, builds from a clean clone on Ubuntu/WSL2)
-- [ ] LoRa transmission task.
+- [x] SX1276 radio bring-up over SPI1 (TCXO, reset, version register read back 0x12)
+- [x] LoRa transmission task: raw SX1276 packets (868.1 MHz, SF7, BW125, CR4/5, CRC on), received and decoded by a Feather M0 (`feather_receiver/`)
 
-   ## Build from the command line
+## Radio link
+- Transmitter: this firmware, +14 dBm on PA_BOOST, one packet every 4th reading (about every 11 s).
+- Receiver: Adafruit Feather M0 + RFM95 running `feather_receiver/feather_receiver.ino` (Sandeep Mistry `LoRa` library).
+- Packet format: plain text, e.g. `STM32 T=17.18 n=13` (`n` is a counter to spot lost packets).
+- Duty cycle: 868.1 MHz is limited to 1% in the EU; a ~20-byte SF7 packet takes about 57 ms, so sending every 4th reading stays well under the limit.
+
+## Build from the command line
 ```bash
-   sudo apt install cmake ninja-build gcc-arm-none-eabi
-   cmake --preset Debug
-   cmake --build --preset Debug
+sudo apt install cmake ninja-build gcc-arm-none-eabi
+cmake --preset Debug
+cmake --build --preset Debug
 ```
-   Output: `build/Debug/l072_blinky.elf` (about 42 KB flash, 14 KB RAM).
-   
+Output: `build/Debug/l072_blinky.elf`.
+
 ## Lessons learned
 - Code placed after the closing brace of `while (1)` never executes; application code must sit inside the loop, within CubeMX `USER CODE` markers so regeneration preserves it.
 - Leading whitespace in `.gitignore` silently breaks pattern matching; build output was committed until the file was corrected and tracked files removed with `git rm --cached`.
@@ -32,9 +40,12 @@ Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa
 - CubeMX creates semaphores with an initial count of 1; the task drains it at start-up so only real presses count.
 - The ISR does the minimum (debounce check, release semaphore); the work happens in the task.
 - A watchdog fed from a timer or from one task can mask a hung task. Each task sets an event flag; a supervisor task feeds the IWDG only when all flags arrive, so any single stuck task triggers a reset. Tested with a deliberate hang (`SIMULATE_SENSOR_HANG`).
+- The IWDG keeps counting while a debugger halts the CPU, so a "last reset was caused by the watchdog" message on the first boot after flashing is expected.
 - Enabling tickless idle alone did not reduce wake-ups: the TIM21 HAL timebase woke the CPU every 1 ms. Suspending it in the pre/post-sleep hooks (`HAL_SuspendTick` / `HAL_ResumeTick`) cut sleep entries from ~2,787 to ~13 per 2.75 s reading cycle (~200x fewer wake-ups).
 - Because the HAL tick pauses during sleep, time-sensitive code such as the button debounce uses the FreeRTOS tick (`osKernelGetTickCount()`) instead of `HAL_GetTick()`.
-- Switching the CubeMX project to CMake does not add your own source files: `app_tasks.c` and `ds18b20.c` had to be listed under `target_sources` in `CMakeLists.txt`. Build with `cmake --preset Debug && cmake --build --preset Debug`
+- Switching the CubeMX project to CMake does not add your own source files: they must be listed under `target_sources` in `CMakeLists.txt`.
+- On this board the SX1276's 32 MHz clock (TCXO) is powered from a GPIO (PA12) and the antenna switch is three more GPIOs (PA1, PC1, PC2); the radio returns nothing useful over SPI until the TCXO is on. A first radio test is to read the version register (expect 0x12).
+- The ST-LINK virtual COM port can go stale after replugging USB; close and reopen the terminal, and a replug can fix a blank console.
 
 ## Tools
-STM32CubeMX · STM32CubeIDE 2.x · STM32 HAL · Git · PuTTY
+STM32CubeMX · STM32CubeIDE 2.x · STM32 HAL · CMake/Ninja · Git · PuTTY · Arduino IDE (receiver)
