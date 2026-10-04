@@ -19,6 +19,7 @@ A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log 
 - [x] Frame counter persisted in data EEPROM (sender) and replay floor persisted in flash (receiver), both power-fail safe
 - [x] Secure boot stage 1: 24 KB bootloader at 0x08000000, app relocated to slot A (0x08006200), verified by hardware reset
 - [x] Secure boot stage 2: 512-byte image header + SHA-256 over header fields and app; tampered images refused (`bootloader/`, `tools/mkimage.py`)
+- [x] Secure boot stage 3: ECDSA P-256 signature over the image hash (micro-ecc, public key in the bootloader, private key off-device); unsigned and re-hashed images refused on hardware.
 
 ## Radio link
 - Transmitter: this firmware, +14 dBm on PA_BOOST, one packet every 4th reading (about every 11 s).
@@ -75,6 +76,9 @@ Output: `build/Debug/l072_blinky.elf`. Open `feather_receiver/feather_receiver.i
 - Restarting the frame counter after a reset reused AES-CTR keystreams: captured packets with the same counter were identical, and two differed by exactly the XOR of their plaintexts. Persisting the counter (reserve-before-use) fixed it.
 - Round-trip tests only prove both ends agree; known-answer vectors (FIPS-197, RFC 4493) prove they match the standard. A planted bug in the CMAC padding constant was caught only by the vectors.
 - Known limitation: the receiver's replay floor is stored in flash in steps of 100, so after a receiver reboot up to 100 genuine packets may be rejected (availability vs flash-wear trade-off). Production options: wear-levelling, EEPROM/FRAM, or new session keys per join as in LoRaWAN OTAA.
+- A hash alone is not authenticity: an image modified and re-hashed passed the SHA-256 check and was stopped only by the signature check.
+- On a 16 MHz Cortex-M0+, ECDSA P-256 verification took 1.6 s and SHA-256 over 50 KB took 0.64 s (about 2.2 s added to boot). An all-zero signature was rejected in 1 ms by range checks before any curve maths.
+- Private signing key lives only in keys/ (git-ignored, backed up offline); only the public key is compiled into the bootloader.
 
 ## Tools
 STM32CubeMX · STM32CubeIDE 2.x · STM32 HAL · CMake/Ninja · Git · PuTTY · Arduino IDE (receiver) · Python (key generation)
