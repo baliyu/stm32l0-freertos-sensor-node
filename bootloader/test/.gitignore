@@ -1,0 +1,5 @@
+test_sha256
+test_image
+fake_app.bin
+fixture_*
+rnd.bin

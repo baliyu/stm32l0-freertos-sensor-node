@@ -1,0 +1,3 @@
+# built images (rebuild with tools/make_image.sh)
+*
+!.gitignore
