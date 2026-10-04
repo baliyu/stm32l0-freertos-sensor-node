@@ -12,6 +12,7 @@ Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa
 - [x] Low-power tickless idle: wake-ups cut from ~1,000/s to ~5/s
 - [x] Code split into driver (`ds18b20`) and application (`app`) modules, keeping CubeMX-generated `main.c` clean
 - [x] CMake / arm-none-eabi-gcc command-line build (Ninja, builds from a clean clone on Ubuntu/WSL2)
+- [x] SX1276 radio bring-up over SPI1 (TCXO, reset, version register read back 0x12)
 - [ ] LoRa transmission task.
 
    ## Build from the command line
