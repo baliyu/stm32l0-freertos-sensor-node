@@ -48,11 +48,15 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/app_tasks.c
     Core/Src/ds18b20.c
     Core/Src/sx1276.c
+    secure_link/aes128.c
+    secure_link/aes_cmac.c
+    secure_link/secure_link.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    secure_link
 )
 
 # Add project symbols (macros)
