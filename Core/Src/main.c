@@ -127,6 +127,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+  extern uint32_t g_pfnVectors[];          /* this image's vector table (startup file) */
+  SCB->VTOR = (uint32_t)g_pfnVectors;      /* runs at 0x08006200 under the bootloader */
 
   /* USER CODE END 1 */
 
