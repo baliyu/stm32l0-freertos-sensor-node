@@ -17,10 +17,8 @@ A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log 
 - [x] LoRa transmission task: raw SX1276 packets (868.1 MHz, SF7, BW125, CR4/5, CRC on), received by a Feather M0 (`feather_receiver/`)
 - [x] Secure link: AES-128-CTR encryption, AES-CMAC MIC and replay-protected frame counters (`secure_link/`), host-tested against FIPS-197 and RFC 4493
 - [x] Frame counter persisted in data EEPROM (sender) and replay floor persisted in flash (receiver), both power-fail safe
-
-## Next
-- [ ] Secure boot: only firmware signed with the project key runs on the board
-- [ ] Device keys in a hardware secure element (MKR WAN 1310, ATECC508A)
+- [x] Secure boot stage 1: 24 KB bootloader at 0x08000000, app relocated to slot A (0x08006200), verified by hardware reset
+- [x] Secure boot stage 2: 512-byte image header + SHA-256 over header fields and app; tampered images refused (`bootloader/`, `tools/mkimage.py`)
 
 ## Radio link
 - Transmitter: this firmware, +14 dBm on PA_BOOST, one packet every 4th reading (about every 11 s).
@@ -37,6 +35,10 @@ Packets are protected the way LoRaWAN protects application data:
 - Receiver: replay floor stored in flash before any packet is delivered (persist-before-deliver), in two copies, so a receiver reboot cannot be used to replay old packets.
 - Host tests: AES-128 against FIPS-197, AES-CMAC against the four RFC 4493 vectors, packet tamper/replay tests, and counter-storage tests with simulated reboots and power cuts (`secure_link/test`).
 - Cost on the STM32L0: about 4 KB of flash and 0.4 KB of RAM.
+- Starting the app from the debugger can skip the bootloader entirely, so an app that overwrote the bootloader still looked fine. A hardware reset always starts at 0x08000000 and is the honest test of the boot chain.
+- Programmers that "run after programming" start at the first address of a .hex file. For a slot image that address is the header, not code, so the CPU crashes. Always start through a real reset.
+- Verifying a 50 KB image with a byte-at-a-time SHA-256 took 642 ms at 16 MHz on the Cortex-M0+ (about 200 cycles/byte): boot time is a real cost of secure boot.
+- One flipped bit in the image produced a completely different hash (a5bfa84b... vs 6739316a...) and the bootloader refused to start it.
 
 ## Build
 Keys are not in the repository. Generate them first, then copy them and the crypto files to the receiver:
