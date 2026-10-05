@@ -1,0 +1,67 @@
+      -------------------------------------------------------------------
+                       STM32CubeProgrammer v2.22.0                  
+      -------------------------------------------------------------------
+
+ST-LINK SN  : 066EFF505349898281143007
+ST-LINK FW  : V2J48M35
+Board       : B-L072Z-LRWAN1
+Voltage     : 3.26V
+SWD freq    : 4000 KHz
+Connect mode: Under Reset
+Reset mode  : Hardware reset
+Device ID   : 0x447
+Revision ID : Rev Z
+Device name : STM32L07x/L08x/L010
+NVM size  : 192 KBytes
+Device type : MCU
+Device CPU  : Cortex-M0+
+BL Version  : 0x41
+
+
+UPLOADING OPTION BYTES DATA ...
+
+  Bank          : 0x00
+  Address       : 0x4002201c 
+  Size          : 104 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 0%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+  Bank          : 0x01
+  Address       : 0x1ff80000 
+  Size          : 20 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 50%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+
+PROGRAMMING OPTION BYTES AREA ...
+
+  Bank          : 0x01
+  Address       : 0x1ff80000 
+  Size          : 20 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 50%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+
+
+Reconnecting...
+Reconnected !
+
+
+UPLOADING OPTION BYTES DATA ...
+
+  Bank          : 0x00
+  Address       : 0x4002201c 
+  Size          : 104 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 50%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+  Bank          : 0x01
+  Address       : 0x1ff80000 
+  Size          : 20 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 50%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+OPTION BYTE PROGRAMMING VERIFICATION:
+
+Option Bytes successfully programmed
+Time elapsed during option Bytes configuration: 00:00:01.236

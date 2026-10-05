@@ -23,14 +23,14 @@ LDFLAGS = $(MCU) -T bootloader.ld -Wl,--gc-sections -Wl,-Map=bootloader.map \
           -Wl,--print-memory-usage --specs=nano.specs --specs=nosys.specs
 
 OBJS    = build/main.o build/image.o build/sha256.o build/rollback.o build/nv_eeprom.o \
-          build/update.o build/flash_l0.o build/uECC.o build/system.o build/startup.o
+          build/update.o build/flash_l0.o build/ob_check.o build/uECC.o build/system.o build/startup.o
 
 all: bootloader.elf bootloader.bin
 
 build:
 	mkdir -p build
 
-build/main.o: main.c image.h pubkey.h rollback.h nv_eeprom.h update.h flash_l0.h | build
+build/main.o: main.c ob_check.h image.h pubkey.h rollback.h nv_eeprom.h update.h flash_l0.h | build
 	$(CC) $(CFLAGS) -c -o $@ $<
 build/image.o: image.c image.h sha256.h | build
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -50,6 +50,9 @@ build/uECC.o: $(UECC)/uECC.c | build
 build/system.o: $(SYSTEM) | build
 	$(CC) $(CFLAGS) -c -o $@ $<
 build/startup.o: $(STARTUP) | build
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+build/ob_check.o: ob_check.c ob_check.h | build
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 bootloader.elf: $(OBJS) bootloader.ld

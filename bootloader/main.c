@@ -12,6 +12,13 @@
 #include "nv_eeprom.h"
 #include "update.h"
 #include "flash_l0.h"
+#include "ob_check.h"
+
+/* 0 = development (RDP level 0 only warns), 1 = production (level 0 refused).
+ * Production: change the 0 below to 1 and rebuild. */
+#ifndef OB_REQUIRE_RDP1
+#define OB_REQUIRE_RDP1 0
+#endif
 #include <stdint.h>
 
 /* ---------- Clock: HSI16 so hashing ~50 KB takes a fraction of a second ---------- */
@@ -147,6 +154,16 @@ static void halt(void)
   for (;;) { }
 }
 
+/* Stage 6: print a 32-bit register value as 0x%08X */
+static void uart_puthex(uint32_t v)
+{
+  static const char hex[] = "0123456789ABCDEF";
+  char buf[11] = "0x";
+  for (int i = 0; i < 8; i++) buf[2 + i] = hex[(v >> (28 - 4 * i)) & 0xFU];
+  buf[10] = '\0';
+  uart_puts(buf);
+}
+
 int main(void)
 {
   const uint8_t *slot = (const uint8_t *)SLOT_A_BASE;
@@ -159,9 +176,38 @@ int main(void)
   uart_init();
   tick_start();
 
-  uart_puts("\r\n[BOOT] stage 5 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates, trusted key id ");
+  uart_puts("\r\n[BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id ");
   uart_puts(SIGNING_KEY_ID);
   uart_puts("\r\n");
+
+  /* Chip protection settings (option bytes), stage 6. Checked first, before any
+   *    update is installed: if protection has been weakened, nothing on this
+   *    chip can be trusted to stay as verified. Fail closed. */
+  {
+    uint32_t optr  = *(volatile const uint32_t *)OB_FLASH_OPTR_ADDR;
+    uint32_t wrp   = *(volatile const uint32_t *)OB_FLASH_WRPROT1_ADDR;
+    uint32_t flags = ob_check(optr, wrp);
+
+    uart_puts("[BOOT] option bytes: RDP level ");
+    uart_putdec(ob_rdp_level(optr));
+    uart_puts(", OPTR=");
+    uart_puthex(optr);
+    uart_puts(", WRPROT1=");
+    uart_puthex(wrp);
+    uart_puts("\r\n");
+
+    if (flags & OB_ERR_WRP)    uart_puts("[BOOT]   bootloader sectors 0-5 are NOT write-protected\r\n");
+    if (flags & OB_ERR_WPRMOD) uart_puts("[BOOT]   WPRMOD=1: protection bits mean PCROP, not write protection\r\n");
+    if (flags & OB_ERR_BFB2)   uart_puts("[BOOT]   BFB2=1: boot from bank 2 could skip this bootloader\r\n");
+    if (flags & OB_WARN_RDP0)  uart_puts("[BOOT]   WARNING: RDP level 0, a debugger can read and change flash\r\n");
+
+    if (ob_is_fatal(flags, OB_REQUIRE_RDP1))
+    {
+      uart_puts("[BOOT] chip protection weaker than required - refusing to start - halted\r\n");
+      halt();
+    }
+    uart_puts("[BOOT] option-byte check passed\r\n");
+  }
 
   /* 0. Pending update in slot B? */
   {
