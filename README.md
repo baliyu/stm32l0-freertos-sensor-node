@@ -20,6 +20,7 @@ A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log 
 - [x] Secure boot stage 1: 24 KB bootloader at 0x08000000, app relocated to slot A (0x08006200), verified by hardware reset
 - [x] Secure boot stage 2: 512-byte image header + SHA-256 over header fields and app; tampered images refused (`bootloader/`, `tools/mkimage.py`)
 - [x] Secure boot stage 3: ECDSA P-256 signature over the image hash (micro-ecc, public key in the bootloader, private key off-device); unsigned and re-hashed images refused on hardware.
+- [x] Secure boot stage 4: anti-rollback minimum version in data EEPROM (raised only after signature check, power-fail safe, self-repairing); a correctly signed older image was refused on hardware
 
 ## Radio link
 - Transmitter: this firmware, +14 dBm on PA_BOOST, one packet every 4th reading (about every 11 s).
@@ -40,6 +41,10 @@ Packets are protected the way LoRaWAN protects application data:
 - Programmers that "run after programming" start at the first address of a .hex file. For a slot image that address is the header, not code, so the CPU crashes. Always start through a real reset.
 - Verifying a 50 KB image with a byte-at-a-time SHA-256 took 642 ms at 16 MHz on the Cortex-M0+ (about 200 cycles/byte): boot time is a real cost of secure boot.
 - One flipped bit in the image produced a completely different hash (a5bfa84b... vs 6739316a...) and the bootloader refused to start it.
+- Simulated power cuts in the anti-rollback tests found a real bug: a copy left stale by an interrupted write was never repaired, so a later corruption of the other copy could lower the minimum. Every boot now repairs stale copies (writing nothing when both are current).
+- A firmware version is only trustworthy after the signature check; anti-rollback must come after it.
+- Erasing data EEPROM with the debugger also reset the LoRa frame counter, which would reuse AES-CTR keystreams with the old keys. Fix: rotate link keys whenever counter state is lost; long term, lock the debug port.
+- Anti-rollback compares version numbers, not contents: two different builds both labelled 1.1.0 were both accepted. Every release must get a new, higher version.
 
 ## Build
 Keys are not in the repository. Generate them first, then copy them and the crypto files to the receiver:
