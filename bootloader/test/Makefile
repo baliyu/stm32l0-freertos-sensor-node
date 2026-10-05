@@ -7,7 +7,7 @@ UECC_DEFS = -DuECC_SUPPORTS_secp160r1=0 -DuECC_SUPPORTS_secp192r1=0 -DuECC_SUPPO
 CFLAGS  = -std=gnu11 -Wall -Wextra -Werror -O2 -I. -I.. -I$(UECC) $(UECC_DEFS)
 TOOLS   = ../../tools
 
-test: test_sha256 test_ecdsa test_image
+test: test_sha256 test_ecdsa test_image test_rollback
 	./test_sha256
 	@echo "--- cross-check against Python hashlib (lengths around the padding boundaries) ---"
 	@for n in 0 1 55 56 63 64 65 119 120 127 128 200 300; do \
@@ -18,6 +18,7 @@ test: test_sha256 test_ecdsa test_image
 	done; rm -f rnd.bin
 	./test_ecdsa
 	./test_image
+	./test_rollback
 
 test_sha256: ../sha256.c ../sha256.h test_sha256.c
 	$(CC) $(CFLAGS) -o $@ ../sha256.c test_sha256.c
@@ -30,6 +31,9 @@ test_ecdsa: test_ecdsa.c ../sha256.c uECC.o
 
 test_image: test_image.c ../image.c ../image.h ../sha256.c uECC.o fixture_pubkey.h fixture_good.bin
 	$(CC) $(CFLAGS) -o $@ test_image.c ../image.c ../sha256.c uECC.o
+
+test_rollback: test_rollback.c ../rollback.c ../rollback.h
+	$(CC) $(CFLAGS) -o $@ test_rollback.c ../rollback.c
 
 # Throw-away test keys (never the real signing key)
 fixture_key.pem fixture_pubkey.h:
@@ -49,4 +53,4 @@ fixture_good.bin: fake_app.bin fixture_key.pem other_key.pem $(TOOLS)/mkimage.py
 	python3 $(TOOLS)/mkimage.py fake_app.bin --version 1.2.3 --key fixture_key.pem -o fixture_rehashed --tamper-rehash 0x1234 > /dev/null
 
 clean:
-	rm -f test_sha256 test_ecdsa test_image uECC.o fake_app.bin fixture_* other_* rnd.bin
+	rm -f test_sha256 test_ecdsa test_image test_rollback uECC.o fake_app.bin fixture_* other_* rnd.bin

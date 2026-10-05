@@ -22,18 +22,23 @@ CFLAGS  = $(MCU) -std=gnu11 -Os -g3 -Wall -Wextra -ffunction-sections -fdata-sec
 LDFLAGS = $(MCU) -T bootloader.ld -Wl,--gc-sections -Wl,-Map=bootloader.map \
           -Wl,--print-memory-usage --specs=nano.specs --specs=nosys.specs
 
-OBJS    = build/main.o build/image.o build/sha256.o build/uECC.o build/system.o build/startup.o
+OBJS    = build/main.o build/image.o build/sha256.o build/rollback.o build/nv_eeprom.o \
+          build/uECC.o build/system.o build/startup.o
 
 all: bootloader.elf bootloader.bin
 
 build:
 	mkdir -p build
 
-build/main.o: main.c image.h pubkey.h | build
+build/main.o: main.c image.h pubkey.h rollback.h nv_eeprom.h | build
 	$(CC) $(CFLAGS) -c -o $@ $<
 build/image.o: image.c image.h sha256.h | build
 	$(CC) $(CFLAGS) -c -o $@ $<
 build/sha256.o: sha256.c sha256.h | build
+	$(CC) $(CFLAGS) -c -o $@ $<
+build/rollback.o: rollback.c rollback.h | build
+	$(CC) $(CFLAGS) -c -o $@ $<
+build/nv_eeprom.o: nv_eeprom.c nv_eeprom.h rollback.h | build
 	$(CC) $(CFLAGS) -c -o $@ $<
 # Third-party code: same flags, minus a warning its assembly helpers trigger
 build/uECC.o: $(UECC)/uECC.c | build
