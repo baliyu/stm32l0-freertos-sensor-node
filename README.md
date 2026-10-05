@@ -1,7 +1,7 @@
 # STM32L0 FreeRTOS Sensor Node
 
 Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa), built with STM32CubeMX and STM32CubeIDE.
-A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log and is sent over LoRa (868.1 MHz), encrypted and authenticated, to an Adafruit Feather M0 receiver.
+A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log and is sent over LoRa (868.1 MHz), encrypted and authenticated, to an Adafruit Feather M0 receiver. The firmware is started by a custom secure bootloader that verifies its signature, refuses downgrades and installs updates safely.
 
 ## Progress
 - [x] GPIO + UART bring-up: LED toggling and serial output over the ST-LINK virtual COM port (115200 baud)
@@ -19,9 +19,14 @@ A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log 
 - [x] Frame counter persisted in data EEPROM (sender) and replay floor persisted in flash (receiver), both power-fail safe
 - [x] Secure boot stage 1: 24 KB bootloader at 0x08000000, app relocated to slot A (0x08006200), verified by hardware reset
 - [x] Secure boot stage 2: 512-byte image header + SHA-256 over header fields and app; tampered images refused (`bootloader/`, `tools/mkimage.py`)
-- [x] Secure boot stage 3: ECDSA P-256 signature over the image hash (micro-ecc, public key in the bootloader, private key off-device); unsigned and re-hashed images refused on hardware.
-- [x] Secure boot stage 4: anti-rollback minimum version in data EEPROM (raised only after signature check, power-fail safe, self-repairing); a correctly signed older image was refused on hardware.
-- [x] Secure boot stage 5: power-fail-safe updates. A new image in slot B is fully verified (hash, signature, anti-rollback) before slot A is touched, copied page by page, compared, and only then cleared from B; tampered and older updates rejected with slot A untouched; a USB power cut mid-copy recovered automatically on the next boot.
+- [x] Secure boot stage 3: ECDSA P-256 signature over the image hash (micro-ecc, public key in the bootloader, private key off-device); unsigned and re-hashed images refused on hardware
+- [x] Secure boot stage 4: anti-rollback minimum version in data EEPROM (raised only after the signature check, power-fail safe, self-repairing); a correctly signed older image was refused on hardware
+- [x] Secure boot stage 5: power-fail-safe updates. A new image in slot B is fully verified (hash, signature, anti-rollback) before slot A is touched, copied page by page, compared, and only then cleared from B; tampered and older updates rejected with slot A untouched; a USB power cut mid-copy recovered automatically on the next boot
+
+## Next
+- [ ] Secure boot stage 6: lockdown. Write-protect the bootloader sectors and enable read-out protection Level 1 (never Level 2, which is permanent)
+- [ ] Device keys in a hardware secure element (Arduino MKR WAN 1310, ATECC508A), compared with the SRAM PUF approach from my PhD
+- [ ] Faster updates: half-page (64-byte) flash programming from RAM; swap-with-confirm updates so a broken release can fall back
 
 ## Radio link
 - Transmitter: this firmware, +14 dBm on PA_BOOST, one packet every 4th reading (about every 11 s).
@@ -38,30 +43,53 @@ Packets are protected the way LoRaWAN protects application data:
 - Receiver: replay floor stored in flash before any packet is delivered (persist-before-deliver), in two copies, so a receiver reboot cannot be used to replay old packets.
 - Host tests: AES-128 against FIPS-197, AES-CMAC against the four RFC 4493 vectors, packet tamper/replay tests, and counter-storage tests with simulated reboots and power cuts (`secure_link/test`).
 - Cost on the STM32L0: about 4 KB of flash and 0.4 KB of RAM.
-- Starting the app from the debugger can skip the bootloader entirely, so an app that overwrote the bootloader still looked fine. A hardware reset always starts at 0x08000000 and is the honest test of the boot chain.
-- Programmers that "run after programming" start at the first address of a .hex file. For a slot image that address is the header, not code, so the CPU crashes. Always start through a real reset.
-- Verifying a 50 KB image with a byte-at-a-time SHA-256 took 642 ms at 16 MHz on the Cortex-M0+ (about 200 cycles/byte): boot time is a real cost of secure boot.
-- One flipped bit in the image produced a completely different hash (a5bfa84b... vs 6739316a...) and the bootloader refused to start it.
-- Simulated power cuts in the anti-rollback tests found a real bug: a copy left stale by an interrupted write was never repaired, so a later corruption of the other copy could lower the minimum. Every boot now repairs stale copies (writing nothing when both are current).
-- A firmware version is only trustworthy after the signature check; anti-rollback must come after it.
-- Erasing data EEPROM with the debugger also reset the LoRa frame counter, which would reuse AES-CTR keystreams with the old keys. Fix: rotate link keys whenever counter state is lost; long term, lock the debug port.
-- Anti-rollback compares version numbers, not contents: two different builds both labelled 1.1.0 were both accepted. Every release must get a new, higher version.
+
+## Secure boot (`bootloader/`, `tools/`)
+Flash layout (192 KB, 4 KB write-protection sectors):
+
+| Region | Address | Size | Contents |
+|---|---|---|---|
+| Bootloader | `0x08000000` | 24 KB | Verifies and starts the app; never updated |
+| Slot A | `0x08006000` | 72 KB | Running image: 512-byte header, then the app (linked at `0x08006200`) |
+| Slot B | `0x08018000` | 72 KB | Update image, verified then copied into slot A |
+| Reserve | `0x0802A000` | 24 KB | Unused |
+| Data EEPROM | `0x08080000` | 16 B | LoRa frame counter (app) |
+| Data EEPROM | `0x08080100` | 16 B | Minimum allowed firmware version (bootloader) |
+
+Boot sequence on every reset:
+1. If slot B holds an image: check hash, signature, vector table and minimum version; on success copy it into slot A, compare, then clear slot B. A rejected update is erased; slot A is never touched by a bad update.
+2. Check slot A: header, SHA-256 over the header fields and app, ECDSA P-256 signature with the public key built into the bootloader, minimum version (raised to this version on success).
+3. Reset the peripherals it used, restore the clock, set VTOR and jump to the app.
+
+- Bootloader: register-level C, no HAL, 9.6 KB. SHA-256 written from FIPS 180-4; ECDSA verification from micro-ecc (vendored, pinned commit, BSD licence).
+- Measured on a 16 MHz Cortex-M0+: SHA-256 over 50 KB in 0.64 s, signature check 1.6 s, update install 15.5 s.
+- Host tests (`bootloader/test`, `make test`): SHA-256 (FIPS vectors, cross-checked with Python), ECDSA (RFC 6979 vectors), image checks with images made by the real signing tool, anti-rollback with simulated power cuts, and updates with a power cut at 1,682 points of an install.
+- Tools: `gen_signing_key.py` (key pair; private key stays in `keys/`, git-ignored), `mkimage.py` (header, hash, signature, slot A or B placement, test tampering), `make_image.sh` (ELF to signed image), `make_eeprom_reset.py` (development only).
 
 ## Build
-Keys are not in the repository. Generate them first, then copy them and the crypto files to the receiver:
+Keys are not in the repository. Generate the link keys, copy them and the crypto files to the receiver, and run the link tests:
 ```bash
 cd secure_link
 python3 gen_keys.py
 sh sync_to_feather.sh
 cd test && make && ./test_host && ./test_fcnt && cd ../..
 ```
-Then build the firmware from the command line:
+Generate the firmware signing key (once; back up `keys/signing_key.pem` offline), test and build the bootloader:
+```bash
+pip install cryptography
+python3 tools/gen_signing_key.py
+cd bootloader/test && make test && make clean && cd ..
+make && cd ..
+```
+Build the app and make a signed image (slot A, or `SLOT=B` for an update):
 ```bash
 sudo apt install cmake ninja-build gcc-arm-none-eabi
 cmake --preset Debug
 cmake --build --preset Debug
+sh tools/make_image.sh build/Debug/l072_blinky.elf 1.0.0
+SLOT=B sh tools/make_image.sh build/Debug/l072_blinky.elf 1.1.0 images/update
 ```
-Output: `build/Debug/l072_blinky.elf`. Open `feather_receiver/feather_receiver.ino` in the Arduino IDE for the receiver.
+Flash `bootloader/bootloader.elf`, then `images/slotA.hex` (or an update `.hex`), with STM32CubeProgrammer, with "Run after programming" off, and start the board with a hardware reset. CubeIDE's Run button alone writes an app without a header, which the bootloader refuses. Open `feather_receiver/feather_receiver.ino` in the Arduino IDE for the receiver.
 
 ## Lessons learned
 - Code placed after the closing brace of `while (1)` never executes; application code must sit inside the loop, within CubeMX `USER CODE` markers so regeneration preserves it.
@@ -82,9 +110,17 @@ Output: `build/Debug/l072_blinky.elf`. Open `feather_receiver/feather_receiver.i
 - Restarting the frame counter after a reset reused AES-CTR keystreams: captured packets with the same counter were identical, and two differed by exactly the XOR of their plaintexts. Persisting the counter (reserve-before-use) fixed it.
 - Round-trip tests only prove both ends agree; known-answer vectors (FIPS-197, RFC 4493) prove they match the standard. A planted bug in the CMAC padding constant was caught only by the vectors.
 - Known limitation: the receiver's replay floor is stored in flash in steps of 100, so after a receiver reboot up to 100 genuine packets may be rejected (availability vs flash-wear trade-off). Production options: wear-levelling, EEPROM/FRAM, or new session keys per join as in LoRaWAN OTAA.
+- Starting the app from the debugger can skip the bootloader entirely, so an app that overwrote the bootloader still looked fine. A hardware reset always starts at 0x08000000 and is the honest test of the boot chain.
+- Programmers that "run after programming" start at the first address of a .hex file. For a slot image that address is the header, not code, so the CPU crashes. Always start through a real reset.
+- Verifying a 50 KB image with a byte-at-a-time SHA-256 took 642 ms at 16 MHz on the Cortex-M0+ (about 200 cycles/byte): boot time is a real cost of secure boot.
+- One flipped bit in the image produced a completely different hash (a5bfa84b... vs 6739316a...) and the bootloader refused to start it.
 - A hash alone is not authenticity: an image modified and re-hashed passed the SHA-256 check and was stopped only by the signature check.
 - On a 16 MHz Cortex-M0+, ECDSA P-256 verification took 1.6 s and SHA-256 over 50 KB took 0.64 s (about 2.2 s added to boot). An all-zero signature was rejected in 1 ms by range checks before any curve maths.
 - Private signing key lives only in keys/ (git-ignored, backed up offline); only the public key is compiled into the bootloader.
+- Simulated power cuts in the anti-rollback tests found a real bug: a copy left stale by an interrupted write was never repaired, so a later corruption of the other copy could lower the minimum. Every boot now repairs stale copies (writing nothing when both are current).
+- A firmware version is only trustworthy after the signature check; anti-rollback must come after it.
+- Erasing data EEPROM with the debugger also reset the LoRa frame counter, which would reuse AES-CTR keystreams with the old keys. Fix: rotate link keys whenever counter state is lost; long term, lock the debug port.
+- Anti-rollback compares version numbers, not contents: two different builds both labelled 1.1.0 were both accepted. Every release must get a new, higher version.
 - The update stays safe because the source (slot B) is kept until the destination (slot A) is complete and compared. Clearing B first would make a power cut fatal; the power-cut tests (1,682 cut points) fail if the order is swapped.
 - The app is always linked for slot A, so a slot B image's vector table must be checked against slot A's address.
 - Installing 50 KB with word-at-a-time programming took 15.5 s on the STM32L0; half-page (64-byte) programming from RAM is the obvious speed-up.
@@ -92,4 +128,4 @@ Output: `build/Debug/l072_blinky.elf`. Open `feather_receiver/feather_receiver.i
 - After pulling USB during a test, both PuTTY and CubeProgrammer lose their connection; reconnect (CubeProgrammer: Under reset + Hardware reset) before assuming the board is damaged. The LED blinking showed the app was running.
 
 ## Tools
-STM32CubeMX · STM32CubeIDE 2.x · STM32 HAL · CMake/Ninja · Git · PuTTY · Arduino IDE (receiver) · Python (key generation)
+STM32CubeMX · STM32CubeIDE 2.x · STM32CubeProgrammer · STM32 HAL · CMake/Ninja · Git · PuTTY · Arduino IDE (receiver) · Python (`cryptography`; key generation and image signing) · micro-ecc
