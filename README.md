@@ -1,7 +1,7 @@
 # STM32L0 FreeRTOS Sensor Node
 
 Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa), built with STM32CubeMX and STM32CubeIDE.
-A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log and is sent over LoRa (868.1 MHz), encrypted and authenticated, to an Adafruit Feather M0 receiver. The firmware is started by a custom secure bootloader that verifies its signature, refuses downgrades and installs updates safely.
+A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log and is sent over LoRa (868.1 MHz), encrypted and authenticated, to an Adafruit Feather M0 receiver. The firmware is started by a custom secure bootloader that verifies its signature, refuses downgrades, installs updates safely and checks the chip's protection settings. The bootloader is write-protected and the chip runs with read-out protection Level 1.
 
 ## Progress
 - [x] GPIO + UART bring-up: LED toggling and serial output over the ST-LINK virtual COM port (115200 baud)
@@ -22,11 +22,12 @@ A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log 
 - [x] Secure boot stage 3: ECDSA P-256 signature over the image hash (micro-ecc, public key in the bootloader, private key off-device); unsigned and re-hashed images refused on hardware
 - [x] Secure boot stage 4: anti-rollback minimum version in data EEPROM (raised only after the signature check, power-fail safe, self-repairing); a correctly signed older image was refused on hardware
 - [x] Secure boot stage 5: power-fail-safe updates. A new image in slot B is fully verified (hash, signature, anti-rollback) before slot A is touched, copied page by page, compared, and only then cleared from B; tampered and older updates rejected with slot A untouched; a USB power cut mid-copy recovered automatically on the next boot
+- [x] Secure boot stage 6: lockdown. Bootloader sectors write-protected (the debugger could not erase a single page, while a signed update still installed); boot-time option-byte check that refuses to start if the protection is weakened; read-out protection Level 1 set through a guarded script that can never write Level 2 (debugger reads of flash and EEPROM refused, device still boots)
 
 ## Next
-- [ ] Secure boot stage 6: lockdown. Write-protect the bootloader sectors and enable read-out protection Level 1 (never Level 2, which is permanent)
 - [ ] Device keys in a hardware secure element (Arduino MKR WAN 1310, ATECC508A), compared with the SRAM PUF approach from my PhD
 - [ ] Faster updates: half-page (64-byte) flash programming from RAM; swap-with-confirm updates so a broken release can fall back
+- [ ] In-field update path (receive an image over UART or LoRa into slot B), needed now that the debugger can no longer write flash
 
 ## Radio link
 - Transmitter: this firmware, +14 dBm on PA_BOOST, one packet every 4th reading (about every 11 s).
@@ -49,7 +50,7 @@ Flash layout (192 KB, 4 KB write-protection sectors):
 
 | Region | Address | Size | Contents |
 |---|---|---|---|
-| Bootloader | `0x08000000` | 24 KB | Verifies and starts the app; never updated |
+| Bootloader | `0x08000000` | 24 KB | Verifies and starts the app; write-protected (sectors 0-5) |
 | Slot A | `0x08006000` | 72 KB | Running image: 512-byte header, then the app (linked at `0x08006200`) |
 | Slot B | `0x08018000` | 72 KB | Update image, verified then copied into slot A |
 | Reserve | `0x0802A000` | 24 KB | Unused |
@@ -57,14 +58,38 @@ Flash layout (192 KB, 4 KB write-protection sectors):
 | Data EEPROM | `0x08080100` | 16 B | Minimum allowed firmware version (bootloader) |
 
 Boot sequence on every reset:
-1. If slot B holds an image: check hash, signature, vector table and minimum version; on success copy it into slot A, compare, then clear slot B. A rejected update is erased; slot A is never touched by a bad update.
-2. Check slot A: header, SHA-256 over the header fields and app, ECDSA P-256 signature with the public key built into the bootloader, minimum version (raised to this version on success).
-3. Reset the peripherals it used, restore the clock, set VTOR and jump to the app.
+1. Check the chip's protection settings (option bytes): bootloader sectors 0-5 write-protected, write-protection mode (WPRMOD=0), boot from bank 1 (BFB2=0). If any is weakened, print which one and halt before touching any image. RDP Level 0 is reported as a warning in development builds and refused in production builds (`OB_REQUIRE_RDP1`).
+2. If slot B holds an image: check hash, signature, vector table and minimum version; on success copy it into slot A, compare, then clear slot B. A rejected update is erased; slot A is never touched by a bad update.
+3. Check slot A: header, SHA-256 over the header fields and app, ECDSA P-256 signature with the public key built into the bootloader, minimum version (raised to this version on success).
+4. Reset the peripherals it used, restore the clock, set VTOR and jump to the app.
 
-- Bootloader: register-level C, no HAL, 9.6 KB. SHA-256 written from FIPS 180-4; ECDSA verification from micro-ecc (vendored, pinned commit, BSD licence).
+- Bootloader: register-level C, no HAL, 10.3 KB (the option-byte check adds under 1 KB). SHA-256 written from FIPS 180-4; ECDSA verification from micro-ecc (vendored, pinned commit, BSD licence).
 - Measured on a 16 MHz Cortex-M0+: SHA-256 over 50 KB in 0.64 s, signature check 1.6 s, update install 15.5 s.
-- Host tests (`bootloader/test`, `make test`): SHA-256 (FIPS vectors, cross-checked with Python), ECDSA (RFC 6979 vectors), image checks with images made by the real signing tool, anti-rollback with simulated power cuts, and updates with a power cut at 1,682 points of an install.
-- Tools: `gen_signing_key.py` (key pair; private key stays in `keys/`, git-ignored), `mkimage.py` (header, hash, signature, slot A or B placement, test tampering), `make_image.sh` (ELF to signed image), `make_eeprom_reset.py` (development only).
+- Host tests (`bootloader/test`, `make test`): SHA-256 (FIPS vectors, cross-checked with Python), ECDSA (RFC 6979 vectors), image checks with images made by the real signing tool, anti-rollback with simulated power cuts, updates with a power cut at 1,682 points of an install, and the option-byte check against register values read from the real chip.
+- Tools: `gen_signing_key.py` (key pair; private key stays in `keys/`, git-ignored), `mkimage.py` (header, hash, signature, slot A or B placement, test tampering), `make_image.sh` (ELF to signed image), `make_eeprom_reset.py` (development only), `rdp_level1.sh` (guarded read-out protection Level 1).
+
+### Lockdown (stage 6)
+Evidence for each step is in `docs/secure_boot/` (CubeProgrammer output and the raw option bytes before and after).
+
+| Step | Setting | Proof on hardware |
+|---|---|---|
+| Baseline | RDP 0xAA (Level 0), no write protection, WPRMOD=0, BFB2=0, BOR off | Raw option bytes read and every value/complement pair checked (`FF5500AA`, ...) |
+| Write protection | WRPROT1 bits 0-5 (`0x08000000`-`0x08005FFF`) | Debugger erase of the bootloader refused at the first page; signed update v1.3.0 → v1.3.1 still installed through slot B (15.6 s) |
+| Boot-time check | Bootloader reads FLASH_OPTR / FLASH_WRPROT1 | With protection removed the bootloader reported it and halted; with protection restored it booted normally |
+| Read-out protection | RDP 0xBB (Level 1) via `tools/rdp_level1.sh` | Debugger reads of the bootloader and of the EEPROM anti-rollback record (`01030001 FEFCFFFE` at Level 0) failed at Level 1; option-byte registers still readable; device boots and runs |
+| Level 2 | Never used | The script can only write 0xBB, refuses to run unless the chip is at Level 0 with the bootloader protected, needs a typed confirmation and reads the result back |
+
+Going back to Level 0 triggers a mass erase of the flash and data EEPROM: bootloader, app, frame counter and minimum version are all lost, so the link keys must be rotated afterwards. This has not been done yet; the board stays locked as the finished demo.
+
+### Known limitations
+- **No secure element.** Link keys are compiled into the app in internal flash. RDP Level 1 stops a debugger from reading them, but Level 1 is not designed to resist fault injection, and bypasses of STM32 read-out protection have been published. The next project moves device keys into an ATECC508A.
+- **No isolation inside the chip.** The Cortex-M0+ app runs with full privileges, so a compromised app could write the data EEPROM (including the anti-rollback record) or rewrite the option bytes. The boot-time check detects removed write protection on the next reset, but it cannot stop the app in the meantime.
+- **BFB2 bypass.** As I read the reference manual, with BFB2=1 the chip can boot straight into bank 2 (`0x08018000`, the update slot) if it holds a valid vector table, and the bootloader never runs. The check catches BFB2=1 only when the bootloader still gets control.
+- **Fail closed, no self-repair.** The bootloader halts rather than re-applying protection, because code that writes option bytes is one bug away from making the chip permanently unprogrammable. The cost: anything able to weaken the protection can also stop the device from booting.
+- **No update path at Level 1.** Updates arrive by flashing slot B with the debugger, which Level 1 blocks. A product would receive images through the app (UART or LoRa) into slot B; the bootloader side is already in place.
+- **Signing key on a laptop.** The private key lives in a git-ignored folder, with an encrypted (AES-256, gpg), restore-tested backup off the machine. A product would keep it in an HSM or offline signing machine.
+- **Brown-out reset is off** (factory setting). Power cuts during updates are handled, but a slow brown-out could run the CPU below a safe voltage; enabling BOR is a one-line option-byte change for production.
+- **Development build.** `OB_REQUIRE_RDP1` is 0, so a chip at Level 0 is only warned about; a production build would set it to 1.
 
 ## Build
 Keys are not in the repository. Generate the link keys, copy them and the crypto files to the receiver, and run the link tests:
@@ -74,7 +99,7 @@ python3 gen_keys.py
 sh sync_to_feather.sh
 cd test && make && ./test_host && ./test_fcnt && cd ../..
 ```
-Generate the firmware signing key (once; back up `keys/signing_key.pem` offline), test and build the bootloader:
+Generate the firmware signing key (once; keep an encrypted backup of `keys/signing_key.pem` off the machine), test and build the bootloader:
 ```bash
 pip install cryptography
 python3 tools/gen_signing_key.py
@@ -90,6 +115,15 @@ sh tools/make_image.sh build/Debug/l072_blinky.elf 1.0.0
 SLOT=B sh tools/make_image.sh build/Debug/l072_blinky.elf 1.1.0 images/update
 ```
 Flash `bootloader/bootloader.elf`, then `images/slotA.hex` (or an update `.hex`), with STM32CubeProgrammer, with "Run after programming" off, and start the board with a hardware reset. CubeIDE's Run button alone writes an app without a header, which the bootloader refuses. Open `feather_receiver/feather_receiver.ino` in the Arduino IDE for the receiver.
+
+Lockdown (after the bootloader and app are flashed and tested, chip at Level 0):
+```bash
+CLI="/mnt/c/Program Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Programmer_CLI.exe"
+"$CLI" -c port=SWD mode=UR reset=HWrst -ob WRPOT0=1 WRPOT1=1 WRPOT2=1 WRPOT3=1 WRPOT4=1 WRPOT5=1
+sh tools/rdp_level1.sh --check     # reads and checks only
+sh tools/rdp_level1.sh             # sets Level 1 after typed confirmation
+```
+Then unplug USB for a few seconds (power-on reset). Do not use the RDP drop-down in the CubeProgrammer GUI: Level 2 is one click away and is permanent.
 
 ## Lessons learned
 - Code placed after the closing brace of `while (1)` never executes; application code must sit inside the loop, within CubeMX `USER CODE` markers so regeneration preserves it.
@@ -116,16 +150,23 @@ Flash `bootloader/bootloader.elf`, then `images/slotA.hex` (or an update `.hex`)
 - One flipped bit in the image produced a completely different hash (a5bfa84b... vs 6739316a...) and the bootloader refused to start it.
 - A hash alone is not authenticity: an image modified and re-hashed passed the SHA-256 check and was stopped only by the signature check.
 - On a 16 MHz Cortex-M0+, ECDSA P-256 verification took 1.6 s and SHA-256 over 50 KB took 0.64 s (about 2.2 s added to boot). An all-zero signature was rejected in 1 ms by range checks before any curve maths.
-- Private signing key lives only in keys/ (git-ignored, backed up offline); only the public key is compiled into the bootloader.
+- Private signing key lives only in keys/ (git-ignored), with an encrypted, restore-tested backup off the machine; only the public key is compiled into the bootloader.
 - Simulated power cuts in the anti-rollback tests found a real bug: a copy left stale by an interrupted write was never repaired, so a later corruption of the other copy could lower the minimum. Every boot now repairs stale copies (writing nothing when both are current).
 - A firmware version is only trustworthy after the signature check; anti-rollback must come after it.
-- Erasing data EEPROM with the debugger also reset the LoRa frame counter, which would reuse AES-CTR keystreams with the old keys. Fix: rotate link keys whenever counter state is lost; long term, lock the debug port.
+- Erasing data EEPROM with the debugger also reset the LoRa frame counter, which would reuse AES-CTR keystreams with the old keys. Fix: rotate link keys whenever counter state is lost; long term, lock the debug port (done in stage 6).
 - Anti-rollback compares version numbers, not contents: two different builds both labelled 1.1.0 were both accepted. Every release must get a new, higher version.
 - The update stays safe because the source (slot B) is kept until the destination (slot A) is complete and compared. Clearing B first would make a power cut fatal; the power-cut tests (1,682 cut points) fail if the order is swapped.
 - The app is always linked for slot A, so a slot B image's vector table must be checked against slot A's address.
 - Installing 50 KB with word-at-a-time programming took 15.5 s on the STM32L0; half-page (64-byte) programming from RAM is the obvious speed-up.
 - Overwrite updates cannot fall back if a correctly signed image is functionally broken; swap-with-confirm (as in MCUboot) is the next step.
 - After pulling USB during a test, both PuTTY and CubeProgrammer lose their connection; reconnect (CubeProgrammer: Under reset + Hardware reset) before assuming the board is damaged. The LED blinking showed the app was running.
+- Option bytes are stored as value/complement pairs and loaded into the flash registers at reset; reading the raw words (`FF5500AA` = RDP 0xAA, WPRMOD 0) and the loaded registers confirmed the baseline instead of trusting the tool's decoded view.
+- CubeProgrammer reports erases in 128-byte pages ("sectors [0 75]"), while write protection works in 4 KB sectors (32 pages each); the refused erase stopped at page 0, so nothing was erased.
+- On the STM32L0 the option bytes can be rewritten by software, so write protection alone only stops accidents. The bootloader re-checks it on every boot and fails closed.
+- Option-byte changes are made through a script that can only write the one intended value and refuses to run from an unexpected state, instead of typing commands or using the GUI drop-down, where Level 2 is one click away.
+- After a debugger connects at Level 1, flash can stay locked until a power-on reset; unplugging USB, not the reset button, brings the board back.
+- Patching a Makefile by text search put a new source into the wrong rule. With an explicit object list, a new file needs its object in the list, a compile rule and header dependencies; the link error caught it before anything reached the board.
+- Fed from a pipe in WSL, `gpg` could not ask for a passphrase (no `GPG_TTY`) and cancelled; encrypting a file instead, then decrypting it with the cached passphrase cleared and comparing SHA-256 hashes, proved the key backup really restores.
 
 ## Tools
-STM32CubeMX · STM32CubeIDE 2.x · STM32CubeProgrammer · STM32 HAL · CMake/Ninja · Git · PuTTY · Arduino IDE (receiver) · Python (`cryptography`; key generation and image signing) · micro-ecc
+STM32CubeMX · STM32CubeIDE 2.x · STM32CubeProgrammer (GUI and CLI) · STM32 HAL · CMake/Ninja · Git · PuTTY · Arduino IDE (receiver) · Python (`cryptography`; key generation and image signing) · micro-ecc · gpg
