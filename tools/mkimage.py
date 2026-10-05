@@ -3,9 +3,14 @@
 
 Input : the app as a raw binary, linked to run at 0x08006200
         (arm-none-eabi-objcopy -O binary app.elf app.bin)
-Output: <out>.bin  header + app, to be written at 0x08006000 (slot A)
+Output: <out>.bin  header + app
         <out>.hex  the same with addresses included (safer to flash: the
-                   programmer cannot put it at the wrong address)
+                   programmer cannot put it at the wrong address).
+                   --slot A (default) places it at 0x08006000 to run directly;
+                   --slot B places it at 0x08018000 as an UPDATE, which the
+                   bootloader verifies and copies into slot A at the next reset.
+                   The image bytes are identical either way: the app is always
+                   linked to run from slot A.
 
 Signing: with --key, the SHA-256 is signed with ECDSA P-256 and the 64-byte
 signature (r || s, big-endian) goes into the header at offset 64. Without
@@ -32,6 +37,7 @@ IMG_HDR_SIZE = 0x200
 IMG_FIXED_LEN = 20
 SIG_OFFSET = 64
 SLOT_A_BASE = 0x08006000
+SLOT_B_BASE = 0x08018000
 SLOT_SIZE = 0x12000             # 72 KB
 APP_BASE = SLOT_A_BASE + IMG_HDR_SIZE
 IMG_MAX_SIZE = SLOT_SIZE - IMG_HDR_SIZE
@@ -107,6 +113,8 @@ def main():
     ap.add_argument("--version", required=True, help="firmware version, e.g. 1.0.0")
     ap.add_argument("-o", "--out", default="slotA", help="output name without extension (default: slotA)")
     ap.add_argument("--key", help="private key (PEM) to sign with, e.g. keys/signing_key.pem")
+    ap.add_argument("--slot", choices=["A", "B"], default="A",
+                    help="A: run directly (0x08006000); B: install as an update (0x08018000)")
     ap.add_argument("--tamper", type=lambda s: int(s, 0), metavar="OFFSET",
                     help="TEST ONLY: flip one bit at this offset in the app AFTER hashing")
     ap.add_argument("--tamper-rehash", type=lambda s: int(s, 0), metavar="OFFSET",
@@ -149,13 +157,15 @@ def main():
 
     with open(args.out + ".bin", "wb") as f:
         f.write(image)
-    write_ihex(args.out + ".hex", bytes(image), SLOT_A_BASE)
+    base = SLOT_A_BASE if args.slot == "A" else SLOT_B_BASE
+    write_ihex(args.out + ".hex", bytes(image), base)
 
     print(f"app      : {args.app_bin} ({len(app)} bytes, SP=0x{sp:08X}, reset=0x{reset:08X})")
     print(f"version  : {args.version}")
     print(f"sha256   : {digest.hex()}")
     print(f"signature: " + (f"ECDSA P-256, key id {key_id}" if key_id else "NONE (unsigned image)"))
-    print(f"written  : {args.out}.bin / {args.out}.hex  ({len(image)} bytes at 0x{SLOT_A_BASE:08X})")
+    print(f"written  : {args.out}.bin / {args.out}.hex  ({len(image)} bytes at 0x{base:08X}, slot {args.slot}"
+          + (", update" if args.slot == "B" else "") + ")")
 
 
 if __name__ == "__main__":

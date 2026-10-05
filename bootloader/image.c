@@ -72,6 +72,7 @@ const char *image_result_str(img_result r)
     case IMG_ERR_HASH:      return "SHA-256 MISMATCH: image corrupted or modified";
     case IMG_ERR_SIGNATURE: return "SIGNATURE INVALID: not signed by the trusted key";
     case IMG_ERR_VECTORS:   return "bad vector table";
+    case IMG_ERR_ROLLBACK:  return "older than the minimum allowed version";
     default:                return "unknown";
   }
 }

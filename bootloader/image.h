@@ -31,8 +31,9 @@
 #define IMG_HDR_SIZE     0x200UL
 #define IMG_FIXED_LEN    20U               /* header bytes covered by the hash */
 
-#define SLOT_A_BASE      0x08006000UL
-#define SLOT_SIZE        0x12000UL         /* 72 KB */
+#define SLOT_A_BASE      0x08006000UL      /* active: the image that runs */
+#define SLOT_B_BASE      0x08018000UL      /* update: a new image is placed here first */
+#define SLOT_SIZE        0x12000UL         /* 72 KB each */
 #define APP_BASE         (SLOT_A_BASE + IMG_HDR_SIZE)
 #define IMG_MAX_SIZE     (SLOT_SIZE - IMG_HDR_SIZE)
 
@@ -57,7 +58,8 @@ typedef enum {
   IMG_ERR_FIELDS,         /* header version/size fields out of range */
   IMG_ERR_HASH,           /* image or header modified/corrupted */
   IMG_ERR_SIGNATURE,      /* hash consistent, but not signed by the trusted key */
-  IMG_ERR_VECTORS         /* signed, but the app's vector table is implausible */
+  IMG_ERR_VECTORS,        /* signed, but the app's vector table is implausible */
+  IMG_ERR_ROLLBACK        /* genuine, but older than the minimum allowed version */
 } img_result;
 
 /* The checks, in the order the bootloader runs them. slot points at the

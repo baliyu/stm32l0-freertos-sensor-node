@@ -2,8 +2,9 @@ test_sha256
 test_ecdsa
 test_image
 test_rollback
+test_update
 uECC.o
-fake_app.bin
+fake_app*.bin
 fixture_*
 other_*
 rnd.bin
