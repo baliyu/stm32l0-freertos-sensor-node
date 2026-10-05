@@ -12,3 +12,6 @@ secure_link/test/test_host
 feather_receiver/*.c
 feather_receiver/*.h
 secure_link/test/test_fcnt
+bootloader/*.elf
+bootloader/*.bin
+bootloader/*.map

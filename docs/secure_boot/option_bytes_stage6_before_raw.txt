@@ -1,0 +1,53 @@
+      -------------------------------------------------------------------
+                       STM32CubeProgrammer v2.22.0                  
+      -------------------------------------------------------------------
+
+ST-LINK SN  : 066EFF505349898281143007
+ST-LINK FW  : V2J48M35
+Board       : B-L072Z-LRWAN1
+Voltage     : 3.26V
+SWD freq    : 4000 KHz
+Connect mode: Under Reset
+Reset mode  : Hardware reset
+Device ID   : 0x447
+Revision ID : Rev Z
+Device name : STM32L07x/L08x/L010
+NVM size  : 192 KBytes
+Device type : MCU
+Device CPU  : Cortex-M0+
+BL Version  : 0x41
+
+
+Reading 32-bit memory content
+  Size          : 20 Bytes
+  Address:      : 0x1FF80000
+0x1FF80000 : FF5500AA 7F8F8070 FFFF0000 FFFF0000
+0x1FF80010 : FFFF0000
+
+
+      -------------------------------------------------------------------
+                       STM32CubeProgrammer v2.22.0                  
+      -------------------------------------------------------------------
+
+ST-LINK SN  : 066EFF505349898281143007
+ST-LINK FW  : V2J48M35
+Board       : B-L072Z-LRWAN1
+Voltage     : 3.26V
+SWD freq    : 4000 KHz
+Connect mode: Under Reset
+Reset mode  : Hardware reset
+Device ID   : 0x447
+Revision ID : Rev Z
+Device name : STM32L07x/L08x/L010
+NVM size  : 192 KBytes
+Device type : MCU
+Device CPU  : Cortex-M0+
+BL Version  : 0x41
+
+
+Reading 32-bit memory content
+  Size          : 8 Bytes
+  Address:      : 0x4002201C
+0x4002201C : 807000AA 00000000
+
+

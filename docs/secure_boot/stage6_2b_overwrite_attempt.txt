@@ -1,0 +1,36 @@
+      -------------------------------------------------------------------
+                       STM32CubeProgrammer v2.22.0                  
+      -------------------------------------------------------------------
+
+ST-LINK SN  : 066EFF505349898281143007
+ST-LINK FW  : V2J48M35
+Board       : B-L072Z-LRWAN1
+Voltage     : 3.26V
+SWD freq    : 4000 KHz
+Connect mode: Under Reset
+Reset mode  : Hardware reset
+Device ID   : 0x447
+Revision ID : Rev Z
+Device name : STM32L07x/L08x/L010
+NVM size  : 192 KBytes
+Device type : MCU
+Device CPU  : Cortex-M0+
+BL Version  : 0x41
+
+
+
+Opening and parsing file: bootloader.elf
+
+
+Memory Programming ...
+  File          : bootloader.elf
+  Size          : 9.38 KB 
+  Address       : 0x08000000
+
+
+Erasing memory corresponding to segment 0:
+Erasing internal memory sectors [0 75]
+Error: failed to erase memory
+
+
+Error: failed to erase memory
