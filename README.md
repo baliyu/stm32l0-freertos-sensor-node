@@ -23,9 +23,10 @@ A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log 
 - [x] Secure boot stage 4: anti-rollback minimum version in data EEPROM (raised only after the signature check, power-fail safe, self-repairing); a correctly signed older image was refused on hardware
 - [x] Secure boot stage 5: power-fail-safe updates. A new image in slot B is fully verified (hash, signature, anti-rollback) before slot A is touched, copied page by page, compared, and only then cleared from B; tampered and older updates rejected with slot A untouched; a USB power cut mid-copy recovered automatically on the next boot
 - [x] Secure boot stage 6: lockdown. Bootloader sectors write-protected (the debugger could not erase a single page, while a signed update still installed); boot-time option-byte check that refuses to start if the protection is weakened; read-out protection Level 1 set through a guarded script that can never write Level 2 (debugger reads of flash and EEPROM refused, device still boots)
+- [x] Device keys in a hardware secure element: done in [mkrwan-secure-element-node](https://github.com/baliyu/mkrwan-secure-element-node) (ATECC608, keys never leave the chip, packets byte-identical to `secure_link/`)
 
 ## Next
-- [ ] Device keys in a hardware secure element (Arduino MKR WAN 1310, ATECC508A), compared with the SRAM PUF approach from my PhD
+
 - [ ] Faster updates: half-page (64-byte) flash programming from RAM; swap-with-confirm updates so a broken release can fall back
 - [ ] In-field update path (receive an image over UART or LoRa into slot B), needed now that the debugger can no longer write flash
 
@@ -90,6 +91,7 @@ Going back to Level 0 triggers a mass erase of the flash and data EEPROM: bootlo
 - **Signing key on a laptop.** The private key lives in a git-ignored folder, with an encrypted (AES-256, gpg), restore-tested backup off the machine. A product would keep it in an HSM or offline signing machine.
 - **Brown-out reset is off** (factory setting). Power cuts during updates are handled, but a slow brown-out could run the CPU below a safe voltage; enabling BOR is a one-line option-byte change for production.
 - **Development build.** `OB_REQUIRE_RDP1` is 0, so a chip at Level 0 is only warned about; a production build would set it to 1.
+- The follow-up project [mkrwan-secure-element-node](https://github.com/baliyu/mkrwan-secure-element-node) moves the link keys into an ATECC608 secure element.
 
 ## Build
 Keys are not in the repository. Generate the link keys, copy them and the crypto files to the receiver, and run the link tests:
