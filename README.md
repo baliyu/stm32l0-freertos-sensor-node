@@ -20,7 +20,8 @@ A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log 
 - [x] Secure boot stage 1: 24 KB bootloader at 0x08000000, app relocated to slot A (0x08006200), verified by hardware reset
 - [x] Secure boot stage 2: 512-byte image header + SHA-256 over header fields and app; tampered images refused (`bootloader/`, `tools/mkimage.py`)
 - [x] Secure boot stage 3: ECDSA P-256 signature over the image hash (micro-ecc, public key in the bootloader, private key off-device); unsigned and re-hashed images refused on hardware.
-- [x] Secure boot stage 4: anti-rollback minimum version in data EEPROM (raised only after signature check, power-fail safe, self-repairing); a correctly signed older image was refused on hardware
+- [x] Secure boot stage 4: anti-rollback minimum version in data EEPROM (raised only after signature check, power-fail safe, self-repairing); a correctly signed older image was refused on hardware.
+- [x] Secure boot stage 5: power-fail-safe updates. A new image in slot B is fully verified (hash, signature, anti-rollback) before slot A is touched, copied page by page, compared, and only then cleared from B; tampered and older updates rejected with slot A untouched; a USB power cut mid-copy recovered automatically on the next boot.
 
 ## Radio link
 - Transmitter: this firmware, +14 dBm on PA_BOOST, one packet every 4th reading (about every 11 s).
@@ -84,6 +85,11 @@ Output: `build/Debug/l072_blinky.elf`. Open `feather_receiver/feather_receiver.i
 - A hash alone is not authenticity: an image modified and re-hashed passed the SHA-256 check and was stopped only by the signature check.
 - On a 16 MHz Cortex-M0+, ECDSA P-256 verification took 1.6 s and SHA-256 over 50 KB took 0.64 s (about 2.2 s added to boot). An all-zero signature was rejected in 1 ms by range checks before any curve maths.
 - Private signing key lives only in keys/ (git-ignored, backed up offline); only the public key is compiled into the bootloader.
+- The update stays safe because the source (slot B) is kept until the destination (slot A) is complete and compared. Clearing B first would make a power cut fatal; the power-cut tests (1,682 cut points) fail if the order is swapped.
+- The app is always linked for slot A, so a slot B image's vector table must be checked against slot A's address.
+- Installing 50 KB with word-at-a-time programming took 15.5 s on the STM32L0; half-page (64-byte) programming from RAM is the obvious speed-up.
+- Overwrite updates cannot fall back if a correctly signed image is functionally broken; swap-with-confirm (as in MCUboot) is the next step.
+- After pulling USB during a test, both PuTTY and CubeProgrammer lose their connection; reconnect (CubeProgrammer: Under reset + Hardware reset) before assuming the board is damaged. The LED blinking showed the app was running.
 
 ## Tools
 STM32CubeMX · STM32CubeIDE 2.x · STM32 HAL · CMake/Ninja · Git · PuTTY · Arduino IDE (receiver) · Python (key generation)
