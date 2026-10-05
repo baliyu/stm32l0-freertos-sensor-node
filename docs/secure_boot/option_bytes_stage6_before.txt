@@ -1,0 +1,107 @@
+      -------------------------------------------------------------------
+                       STM32CubeProgrammer v2.22.0                  
+      -------------------------------------------------------------------
+
+ST-LINK SN  : 066EFF505349898281143007
+ST-LINK FW  : V2J48M35
+Board       : B-L072Z-LRWAN1
+Voltage     : 3.26V
+SWD freq    : 4000 KHz
+Connect mode: Under Reset
+Reset mode  : Hardware reset
+Device ID   : 0x447
+Revision ID : Rev Z
+Device name : STM32L07x/L08x/L010
+NVM size  : 192 KBytes
+Device type : MCU
+Device CPU  : Cortex-M0+
+BL Version  : 0x41
+
+
+UPLOADING OPTION BYTES DATA ...
+
+  Bank          : 0x00
+  Address       : 0x4002201c 
+  Size          : 104 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 0%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+  Bank          : 0x01
+  Address       : 0x1ff80000 
+  Size          : 20 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 50%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+
+OPTION BYTES BANK: 0
+
+   Read Out Protection:
+
+     RDP          : 0xAA (Level 0, no protection) 
+
+   PCROP Protection:
+
+     WPRMOD       : 0x0 (WRPx bit defines sector write protection) 
+
+   BOR Level:
+
+     BOR_LEV      : 0x0 (BOR Level OFF, reset level threshold the 1.45 V-1.55 V) 
+
+   User Configuration:
+
+     IWDG_SW      : 0x1 (Software independent watchdog) 
+     nRST_STOP    : 0x1 (No reset generated) 
+     nRST_STDBY   : 0x1 (No reset generated) 
+     BFB2         : 0x0 (Boot from flash bank 1) 
+     nBOOT1       : 0x1 (Boot from Flash if BOOT0 = 0, otherwise system memory) 
+
+   Write Protection:
+
+     WRPOT0       : 0x0 (Write protection not active) 
+     WRPOT1       : 0x0 (Write protection not active) 
+     WRPOT2       : 0x0 (Write protection not active) 
+     WRPOT3       : 0x0 (Write protection not active) 
+     WRPOT4       : 0x0 (Write protection not active) 
+     WRPOT5       : 0x0 (Write protection not active) 
+     WRPOT6       : 0x0 (Write protection not active) 
+     WRPOT7       : 0x0 (Write protection not active) 
+     WRPOT8       : 0x0 (Write protection not active) 
+     WRPOT9       : 0x0 (Write protection not active) 
+     WRPOT10      : 0x0 (Write protection not active) 
+     WRPOT11      : 0x0 (Write protection not active) 
+     WRPOT12      : 0x0 (Write protection not active) 
+     WRPOT13      : 0x0 (Write protection not active) 
+     WRPOT14      : 0x0 (Write protection not active) 
+     WRPOT15      : 0x0 (Write protection not active) 
+     WRPOT16      : 0x0 (Write protection not active) 
+     WRPOT17      : 0x0 (Write protection not active) 
+     WRPOT18      : 0x0 (Write protection not active) 
+     WRPOT19      : 0x0 (Write protection not active) 
+     WRPOT20      : 0x0 (Write protection not active) 
+     WRPOT21      : 0x0 (Write protection not active) 
+     WRPOT22      : 0x0 (Write protection not active) 
+     WRPOT23      : 0x0 (Write protection not active) 
+     WRPOT24      : 0x0 (Write protection not active) 
+     WRPOT25      : 0x0 (Write protection not active) 
+     WRPOT26      : 0x0 (Write protection not active) 
+     WRPOT27      : 0x0 (Write protection not active) 
+     WRPOT28      : 0x0 (Write protection not active) 
+     WRPOT29      : 0x0 (Write protection not active) 
+     WRPOT30      : 0x0 (Write protection not active) 
+     WRPOT31      : 0x0 (Write protection not active) 
+     WRPOT32      : 0x0 (Write protection not active) 
+     WRPOT33      : 0x0 (Write protection not active) 
+     WRPOT34      : 0x0 (Write protection not active) 
+     WRPOT35      : 0x0 (Write protection not active) 
+     WRPOT36      : 0x0 (Write protection not active) 
+     WRPOT37      : 0x0 (Write protection not active) 
+     WRPOT38      : 0x0 (Write protection not active) 
+     WRPOT39      : 0x0 (Write protection not active) 
+     WRPOT40      : 0x0 (Write protection not active) 
+     WRPOT41      : 0x0 (Write protection not active) 
+     WRPOT42      : 0x0 (Write protection not active) 
+     WRPOT43      : 0x0 (Write protection not active) 
+     WRPOT44      : 0x0 (Write protection not active) 
+     WRPOT45      : 0x0 (Write protection not active) 
+     WRPOT46      : 0x0 (Write protection not active) 
+     WRPOT47      : 0x0 (Write protection not active) 

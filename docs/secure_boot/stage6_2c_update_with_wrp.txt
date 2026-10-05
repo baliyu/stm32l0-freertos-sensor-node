@@ -1,0 +1,52 @@
+      -------------------------------------------------------------------
+                       STM32CubeProgrammer v2.22.0                  
+      -------------------------------------------------------------------
+
+ST-LINK SN  : 066EFF505349898281143007
+ST-LINK FW  : V2J48M35
+Board       : B-L072Z-LRWAN1
+Voltage     : 3.26V
+SWD freq    : 4000 KHz
+Connect mode: Under Reset
+Reset mode  : Hardware reset
+Device ID   : 0x447
+Revision ID : Rev Z
+Device name : STM32L07x/L08x/L010
+NVM size  : 192 KBytes
+Device type : MCU
+Device CPU  : Cortex-M0+
+BL Version  : 0x41
+
+
+
+Opening and parsing file: update131.hex
+
+
+Memory Programming ...
+  File          : update131.hex
+  Size          : 49.39 KB 
+  Address       : 0x08018000
+
+
+Erasing memory corresponding to segment 0:
+Erasing internal memory sectors [768 1163]
+Download in Progress:
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±± 0%€€€€€€€€€€€€€€€€ 33%€€€€€€€€€€€€€€€€€ 66%€€€€€€€€€€€€€€€€€ 100%
+
+File download complete
+Time elapsed during download operation: 00:00:04.489
+
+
+
+Verifying...
+
+
+Read progress:
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±± 50%€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€ 100%
+
+Time elapsed during verifying operation: 00:00:00.379
+
+
+Download verified successfully
+
+
