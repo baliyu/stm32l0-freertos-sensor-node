@@ -92,6 +92,9 @@ Going back to Level 0 triggers a mass erase of the flash and data EEPROM: bootlo
 - **Brown-out reset is off** (factory setting). Power cuts during updates are handled, but a slow brown-out could run the CPU below a safe voltage; enabling BOR is a one-line option-byte change for production.
 - **Development build.** `OB_REQUIRE_RDP1` is 0, so a chip at Level 0 is only warned about; a production build would set it to 1.
 
+## Security analysis
+A STRIDE threat model is in [docs/secure_boot/THREAT_MODEL.md](docs/secure_boot/THREAT_MODEL.md): the attackers, assets and trust boundaries, 17 threats, the evidence behind each mitigation and the residual risk. It is my own design-level analysis, not an independent review. The three things I would fix first for a product: the link keys sit in internal flash behind read-out protection Level 1, there is no in-field update path or persistent security event log, and the signing key lives on a laptop instead of an HSM or offline signer.
+
 ## Build
 Keys are not in the repository. Generate the link keys, copy them and the crypto files to the receiver, and run the link tests:
 ```bash
