@@ -93,7 +93,7 @@ Going back to Level 0 triggers a mass erase of the flash and data EEPROM: bootlo
 - **Development build.** `OB_REQUIRE_RDP1` is 0, so a chip at Level 0 is only warned about; a production build would set it to 1.
 
 ## Security analysis
-A STRIDE threat model is in [docs/secure_boot/THREAT_MODEL.md](docs/THREAT_MODEL.md): the attackers, assets and trust boundaries, 17 threats, the evidence behind each mitigation and the residual risk. It is my own design-level analysis, not an independent review. The three things I would fix first for a product: the link keys sit in internal flash behind read-out protection Level 1, there is no in-field update path or persistent security event log, and the signing key lives on a laptop instead of an HSM or offline signer.
+A STRIDE threat model is in [docs/secure_boot/THREAT_MODEL.md](docs/secure_boot/THREAT_MODEL.md): the attackers, assets and trust boundaries, 17 threats, the evidence behind each mitigation and the residual risk. It is my own design-level analysis, not an independent review. The three things I would fix first for a product: the link keys sit in internal flash behind read-out protection Level 1, there is no in-field update path or persistent security event log, and the signing key lives on a laptop instead of an HSM or offline signer. A gap analysis against the 22 essential requirements of the EU Cyber Resilience Act (a self-assessment of how the project would measure up if it were a product) is in [docs/secure_boot/CRA_MAPPING.md](docs/secure_boot/CRA_MAPPING.md), and how to report a vulnerability is in [SECURITY.md](SECURITY.md).
 
 ## Build
 Keys are not in the repository. Generate the link keys, copy them and the crypto files to the receiver, and run the link tests:
