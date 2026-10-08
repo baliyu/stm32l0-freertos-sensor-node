@@ -83,7 +83,7 @@ Evidence for each step is in `docs/secure_boot/` (CubeProgrammer output and the 
 Going back to Level 0 triggers a mass erase of the flash and data EEPROM: bootloader, app, frame counter and minimum version are all lost, so the link keys must be rotated afterwards. This has not been done yet; the board stays locked as the finished demo.
 
 ### Known limitations
-- **No secure element.** Link keys are compiled into the app in internal flash. RDP Level 1 stops a debugger from reading them, but Level 1 is not designed to resist fault injection, and bypasses of STM32 read-out protection have been published. The next project moves device keys into an ATECC508A.
+- **No secure element.** Link keys are compiled into the app in internal flash. RDP Level 1 stops a debugger from reading them, but Level 1 is not designed to resist fault injection, and bypasses of STM32 read-out protection have been published. The follow-up project [mkrwan-secure-element-node](https://github.com/baliyu/mkrwan-secure-element-node) moves the link keys into an ATECC608 secure element (this board still keeps them in flash).
 - **No isolation inside the chip.** The Cortex-M0+ app runs with full privileges, so a compromised app could write the data EEPROM (including the anti-rollback record) or rewrite the option bytes. The boot-time check detects removed write protection on the next reset, but it cannot stop the app in the meantime.
 - **BFB2 bypass.** As I read the reference manual, with BFB2=1 the chip can boot straight into bank 2 (`0x08018000`, the update slot) if it holds a valid vector table, and the bootloader never runs. The check catches BFB2=1 only when the bootloader still gets control.
 - **Fail closed, no self-repair.** The bootloader halts rather than re-applying protection, because code that writes option bytes is one bug away from making the chip permanently unprogrammable. The cost: anything able to weaken the protection can also stop the device from booting.
@@ -91,7 +91,6 @@ Going back to Level 0 triggers a mass erase of the flash and data EEPROM: bootlo
 - **Signing key on a laptop.** The private key lives in a git-ignored folder, with an encrypted (AES-256, gpg), restore-tested backup off the machine. A product would keep it in an HSM or offline signing machine.
 - **Brown-out reset is off** (factory setting). Power cuts during updates are handled, but a slow brown-out could run the CPU below a safe voltage; enabling BOR is a one-line option-byte change for production.
 - **Development build.** `OB_REQUIRE_RDP1` is 0, so a chip at Level 0 is only warned about; a production build would set it to 1.
-- The follow-up project [mkrwan-secure-element-node](https://github.com/baliyu/mkrwan-secure-element-node) moves the link keys into an ATECC608 secure element.
 
 ## Build
 Keys are not in the repository. Generate the link keys, copy them and the crypto files to the receiver, and run the link tests:
