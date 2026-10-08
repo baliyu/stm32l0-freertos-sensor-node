@@ -30,4 +30,4 @@ Please include what you found, the affected files or commit, how to reproduce it
 - Denial of service by radio jamming.
 
 ## Known limitations
-The residual risks I already know about are listed in [docs/secure_boot/THREAT_MODEL.md](docs/secure_boot/THREAT_MODEL.md). A report that only restates one of them is welcome as a discussion but is not a new vulnerability.
+The residual risks I already know about are listed in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md). A report that only restates one of them is welcome as a discussion but is not a new vulnerability.
