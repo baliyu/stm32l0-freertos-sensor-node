@@ -3,6 +3,7 @@ test_ecdsa
 test_image
 test_rollback
 test_update
+test_ob_check
 uECC.o
 fake_app*.bin
 fixture_*

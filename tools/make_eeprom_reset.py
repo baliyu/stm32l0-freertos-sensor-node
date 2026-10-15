@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """make_eeprom_reset.py - DEVELOPMENT ONLY: a .hex that clears the bootloader's
 anti-rollback record in data EEPROM (16 zero bytes at 0x08080100), so older
-test versions can boot again.
+test versions can boot again. Usage: python3 tools/make_eeprom_reset.py [out.hex]
+(default images/reset_min_version.hex).
 
 This works only because the debug port is still open. Once the board is locked
 down (stage 6), nobody can do this, which is the point of locking it.

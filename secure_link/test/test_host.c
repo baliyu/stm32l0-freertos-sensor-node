@@ -1,4 +1,4 @@
-/* test_host.c - run on the PC before any of this goes near a microcontroller.
+/* test_host.c - AES-128, AES-CMAC and the secure link, run on the PC before any of this goes near a microcontroller.
  *   1. AES-128 against the FIPS-197 example
  *   2. AES-CMAC against the four RFC 4493 examples
  *   3. secure_link: round trip, tampering, wrong key, replay

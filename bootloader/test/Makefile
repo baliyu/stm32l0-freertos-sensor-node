@@ -1,4 +1,4 @@
-# Host (PC) tests for the bootloader's SHA-256, ECDSA and image checks.
+# Host (PC) tests for the bootloader's SHA-256, ECDSA, image, anti-rollback, update and option-byte checks.
 # Run:  make test      (needs Python 3 with the 'cryptography' package)
 CC      = gcc
 UECC    = ../third_party/micro-ecc
@@ -7,7 +7,7 @@ UECC_DEFS = -DuECC_SUPPORTS_secp160r1=0 -DuECC_SUPPORTS_secp192r1=0 -DuECC_SUPPO
 CFLAGS  = -std=gnu11 -Wall -Wextra -Werror -O2 -I. -I.. -I$(UECC) $(UECC_DEFS)
 TOOLS   = ../../tools
 
-test: test_sha256 test_ecdsa test_image test_rollback test_update
+test: test_sha256 test_ecdsa test_image test_rollback test_update test_ob_check
 	./test_sha256
 	@echo "--- cross-check against Python hashlib (lengths around the padding boundaries) ---"
 	@for n in 0 1 55 56 63 64 65 119 120 127 128 200 300; do \
@@ -20,6 +20,7 @@ test: test_sha256 test_ecdsa test_image test_rollback test_update
 	./test_image
 	./test_rollback
 	./test_update
+	./test_ob_check
 
 test_sha256: ../sha256.c ../sha256.h test_sha256.c
 	$(CC) $(CFLAGS) -o $@ ../sha256.c test_sha256.c
@@ -38,6 +39,9 @@ test_rollback: test_rollback.c ../rollback.c ../rollback.h
 
 test_update: test_update.c ../update.c ../update.h ../image.c ../sha256.c uECC.o fixture_pubkey.h fixture_good.bin fixture_new.bin
 	$(CC) $(CFLAGS) -o $@ test_update.c ../update.c ../image.c ../sha256.c uECC.o
+
+test_ob_check: test_ob_check.c ../ob_check.c ../ob_check.h
+	$(CC) $(CFLAGS) -o $@ test_ob_check.c ../ob_check.c
 
 # Throw-away test keys (never the real signing key)
 fixture_key.pem fixture_pubkey.h:
@@ -67,4 +71,4 @@ fixture_good.bin: fake_app.bin fixture_key.pem other_key.pem $(TOOLS)/mkimage.py
 	python3 $(TOOLS)/mkimage.py fake_app.bin --version 1.2.3 --key fixture_key.pem -o fixture_rehashed --tamper-rehash 0x1234 > /dev/null
 
 clean:
-	rm -f test_sha256 test_ecdsa test_image test_rollback test_update uECC.o fake_app.bin fake_app2.bin fixture_* other_* rnd.bin
+	rm -f test_sha256 test_ecdsa test_image test_rollback test_update test_ob_check uECC.o fake_app.bin fake_app2.bin fixture_* other_* rnd.bin

@@ -78,6 +78,7 @@ img_result image_check_vectors(const uint8_t *slot, uint32_t slot_addr);
 /* All of the above. */
 img_result image_verify(const uint8_t *slot, uint32_t slot_addr, const uint8_t pubkey[64], uint8_t digest[32]);
 
+/* Short text for an image result code, for the serial log. Returns a constant string. */
 const char *image_result_str(img_result r);
 
 #endif

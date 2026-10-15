@@ -34,6 +34,7 @@ typedef struct {
   aes128_ctx mic;              /* expanded MIC key */
 } sl_keys;
 
+/* Expand the encryption key and the MIC key once; the same sl_keys then serves every packet. */
 void sl_init_keys(sl_keys *k, const uint8_t enc_key[16], const uint8_t mic_key[16]);
 
 /* Build a packet. Returns its length, or SL_ERR_LENGTH if it doesn't fit. */

@@ -4,6 +4,7 @@
 
 #include "update.h"
 
+/* The STM32L0 implementation of flash_ops, used by the bootloader on the chip. */
 extern const flash_ops flash_l0;
 
 /* Set by main.c to print copy progress (may stay NULL) */

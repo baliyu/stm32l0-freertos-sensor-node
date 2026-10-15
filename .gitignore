@@ -6,6 +6,8 @@ Release/
 *.map
 *.list
 .settings/
+__pycache__/
+*.pyc
 
 secure_link/secure_link_keys.h
 secure_link/test/test_host

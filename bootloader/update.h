@@ -39,9 +39,13 @@ typedef enum {
   UPD_FAILED          /* flash error during the copy: slot B kept, retried next boot */
 } upd_result;
 
+/* Install slot B into slot A if slot B holds a valid, newer-than-minimum image. min_version is the lowest fw_version still accepted (see
+ * rollback_min_version). *why receives the reason a slot B image was refused (IMG_OK otherwise); *version receives slot B's fw_version when it
+ * has a header (0 when it is empty). */
 upd_result update_from_slot_b(const flash_ops *f, const uint8_t pubkey[64], uint32_t min_version,
                               img_result *why, uint32_t *version);
 
+/* Short text for an update result code, for the serial log. Returns a constant string. */
 const char *update_result_str(upd_result r);
 
 #endif
