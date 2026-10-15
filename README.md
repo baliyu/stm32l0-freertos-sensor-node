@@ -1,7 +1,10 @@
 # STM32L0 FreeRTOS Sensor Node
+![CI](https://github.com/baliyu/stm32l0-freertos-sensor-node/actions/workflows/ci.yml/badge.svg)
 
 Firmware for the ST **B-L072Z-LRWAN1** (STM32L072CZ, ARM Cortex-M0+, SX1276 LoRa), built with STM32CubeMX and STM32CubeIDE.
 A temperature reading from a DS18B20 flows through FreeRTOS tasks to a UART log and is sent over LoRa (868.1 MHz), encrypted and authenticated, to an Adafruit Feather M0 receiver. The firmware is started by a custom secure bootloader that verifies its signature, refuses downgrades, installs updates safely and checks the chip's protection settings. The bootloader is write-protected and the chip runs with read-out protection Level 1.
+
+Interfaces, the image format, the memory map and the tools are in [docs/API.md](docs/API.md). Its generated parts, and the facts that the C headers, the Python tools, the linker scripts and these documents all repeat, are checked by `python3 -m unittest discover -s tests`; CI runs that together with the C host tests.
 
 ## Progress
 - [x] GPIO + UART bring-up: LED toggling and serial output over the ST-LINK virtual COM port (115200 baud)

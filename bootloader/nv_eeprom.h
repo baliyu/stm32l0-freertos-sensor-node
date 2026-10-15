@@ -11,6 +11,7 @@
 
 #define ROLLBACK_EEPROM_ADDR  0x08080100UL
 
+/* The STM32L0 data-EEPROM implementation of nv_backend, holding the anti-rollback minimum. */
 extern const nv_backend rollback_eeprom;
 
 #endif

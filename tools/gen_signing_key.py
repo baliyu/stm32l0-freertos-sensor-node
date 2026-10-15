@@ -57,8 +57,8 @@ static const uint8_t SIGNING_PUBKEY[64] = {{
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--key", default="keys/signing_key.pem")
-    ap.add_argument("--header", default="bootloader/pubkey.h")
+    ap.add_argument("--key", default="keys/signing_key.pem", help="where the private key (PEM) is written")
+    ap.add_argument("--header", default="bootloader/pubkey.h", help="where the public key is written as a C header")
     ap.add_argument("--force", action="store_true", help="replace an existing private key (DANGEROUS)")
     args = ap.parse_args()
 

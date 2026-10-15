@@ -13,7 +13,9 @@ typedef struct {
   uint8_t rk[176];          /* 11 round keys x 16 bytes */
 } aes128_ctx;
 
+/* Expand the 16-byte key into the 176-byte round-key schedule. */
 void aes128_init(aes128_ctx *ctx, const uint8_t key[16]);
+/* Encrypt one 16-byte block with an expanded key. */
 void aes128_encrypt(const aes128_ctx *ctx, const uint8_t in[16], uint8_t out[16]);
 
 #ifdef __cplusplus
