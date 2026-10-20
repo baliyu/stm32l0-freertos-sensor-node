@@ -127,11 +127,41 @@ static void test_link(void)
   check(r == SL_ERR_LENGTH, "open: truncated packet rejected");
 }
 
+/* Known-answer test for the AES-CTR keystream in sl_seal (the encryption side).
+ * Why it exists: the round-trip tests above cannot see a mistake that is made the same way
+ * when sealing and opening, for example passing dev_id and fcnt to ctr_xor in the wrong order.
+ * The expected bytes were NOT produced by this C code. They come from an independent AES
+ * (Python 'cryptography', AES-128 in ECB mode) applied to the counter blocks
+ *   [0x01][dev_id][fcnt, 4 bytes little-endian][9 zero bytes][block number 1, 2, ...]
+ * and XORed with the payload. Inputs: the enc_key from test_link, dev_id 0x42,
+ * fcnt 0x01020304 (four different bytes, so byte order and truncation both show up),
+ * and a 20-byte payload (two blocks of keystream, so the block number is tested too). */
+static void test_ctr_known_answer(void)
+{
+  const uint8_t enc_key[16] = {0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f};
+  const uint8_t mic_key[16] = {0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f};
+  const char *msg = "0123456789ABCDEFGHIJ";
+  const uint8_t len = 20;
+  uint8_t pkt[SL_MAX_PACKET], expect[20];
+  sl_keys k;
+  int n;
+
+  sl_init_keys(&k, enc_key, mic_key);
+  n = sl_seal(&k, 0x42, 0x01020304UL, (const uint8_t *)msg, len, pkt, sizeof(pkt));
+  check(n == (int)(SL_HDR_LEN + len + SL_MIC_LEN), "KAT: packet length = header + 20 bytes + MIC");
+  check(pkt[0] == 0x42 && pkt[1] == 0x04 && pkt[2] == 0x03 && pkt[3] == 0x02 && pkt[4] == 0x01,
+        "KAT: header = dev_id, then fcnt little-endian");
+  hex_to_bytes("124e014a49db8d6ead86e3e08d8fe208cfeca8f6", expect);
+  check(memcmp(&pkt[SL_HDR_LEN], expect, len) == 0,
+        "KAT: ciphertext matches an independent AES-CTR (2 blocks, fcnt 0x01020304)");
+}
+
 int main(void)
 {
   test_aes();
   test_cmac();
   test_link();
+  test_ctr_known_answer();
   printf("\n%s: %d failure(s)\n", failures ? "FAILED" : "ALL TESTS PASSED", failures);
   return failures ? 1 : 0;
 }
