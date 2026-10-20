@@ -454,6 +454,25 @@ Guard rails:
 Going back from Level 1 to Level 0 erases the whole flash and data EEPROM.
 ```
 
+#### `tools/static_check.sh`
+
+static checks (cppcheck and clang-tidy) on the host-compilable product code.
+
+```text
+tools/static_check.sh - static checks (cppcheck and clang-tidy) on the host-compilable product code.
+Exits with an error if either tool finds anything.
+
+  bash tools/static_check.sh
+
+Run it from anywhere inside the repository. CI runs the same script (job static-analysis).
+Checked: bootloader sha256, image, rollback, update and ob_check; secure_link aes128, aes_cmac,
+secure_link and fcnt_store. Not checked: bootloader/main.c, flash_l0.c and nv_eeprom.c (they need
+device headers), Core/, third_party/ and the tests.
+The clang-tidy checks are listed in .clang-tidy, which also gives the reason for every disabled
+check. The cppcheck variableScope note in sha256.c is suppressed below (style only).
+Needs cppcheck and clang-tidy on the PATH (sudo apt install cppcheck clang-tidy).
+```
+
 #### `secure_link/gen_keys.py`
 
 Write secure_link_keys.h with two fresh random 128-bit keys.

@@ -43,3 +43,17 @@ jobs:
 
       - name: Documentation and consistency tests
         run: python -m unittest discover -s tests -v
+
+  static-analysis:
+    name: Static analysis (cppcheck and clang-tidy)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Install cppcheck and clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y cppcheck clang-tidy
+
+      - name: Static checks on the host-compilable product code
+        run: bash tools/static_check.sh
