@@ -135,6 +135,32 @@ Going back to Level 0 triggers a mass erase of the flash and data EEPROM: bootlo
 ## Security analysis
 A STRIDE threat model is in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md): the attackers, assets and trust boundaries, 17 threats, the evidence behind each mitigation and the residual risk. It is my own design-level analysis, not an independent review. The three things I would fix first for a product: the link keys sit in internal flash behind read-out protection Level 1, there is no in-field update path or persistent security event log, and the signing key lives on a laptop instead of an HSM or offline signer. A gap analysis against the 22 essential requirements of the EU Cyber Resilience Act (a self-assessment of how the project would measure up if it were a product) is in [docs/CRA_MAPPING.md](docs/CRA_MAPPING.md), and how to report a vulnerability is in [SECURITY.md](SECURITY.md). A self-assessment against IEC 62443-4-2 (as an embedded device) and the 4-1 development practices is in [docs/IEC62443_SELF_ASSESSMENT.md](docs/IEC62443_SELF_ASSESSMENT.md); it is not a certification.
 
+## Static analysis
+Two tools check the host-compilable product code on every push and pull request: cppcheck 2.13.0 (warning, style, performance and portability checks) and clang-tidy 18 (CERT-style, bugprone and clang-analyzer checks). `tools/static_check.sh` runs them, and the CI job `static-analysis` runs the same script. These are CERT-style checks, **not MISRA C**: the MISRA rule text is paid for and no MISRA checker has been run.
+
+**Checked:** nine files that the host tests already compile on the PC. Bootloader: sha256, image, rollback, update and ob_check. Secure link: aes128, aes_cmac, secure_link and fcnt_store.
+**Not checked:** `bootloader/main.c`, `bootloader/flash_l0.c` and `bootloader/nv_eeprom.c` (they need the STM32 device headers), `Core/`, the vendored `bootloader/third_party/micro-ecc/` and the test programs.
+
+| Tool | First run | After triage |
+|---|---|---|
+| cppcheck | 2 findings | 0 (one note suppressed) |
+| clang-tidy | 12 findings | 0 (four checks disabled, reasons below) |
+
+All 14 first-run findings were read in the code, and none was a defect. The reasons are written next to each disabled check in `.clang-tidy`.
+- **Variable scope (cppcheck, 2).** Two temporaries in the SHA-256 compression function are declared at the top of the function. Style only; suppressed in `tools/static_check.sh`.
+- **Multiplication used as an array offset (clang-tidy, 4).** Expressions such as `4*i` in the SHA-256 and AES loops. The largest value is 63, so they cannot overflow. The check is about `int` being widened on a 64-bit PC; I reasoned that it does not apply on the 32-bit target and did not test that.
+- **memset and memcpy (clang-tidy, 2).** The check asks for the optional C11 Annex K functions, which the ARM and Linux toolchains do not provide. The `memset` clears a public hash and both sizes are constants.
+- **Repeated branch body (clang-tidy, 1).** The CMAC padding rule in `aes_cmac` has two branches with the same body. Read and correct; the four RFC 4493 vectors pass.
+- **Easily swappable parameters (clang-tidy, 5).** Each was tested or read instead of only suppressed:
+  - `ctr_xor`: swapping `dev_id` and `fcnt` in both the encrypt and the decrypt call passed every test. A known-answer test now fails on that swap (see Lessons learned).
+  - `image_check_signature`: a swapped call is rejected by gcc, which sees a 64-byte read from a 32-byte array.
+  - `sl_open`: swapping two arguments in a test call is caught by the tests.
+  - `ob_check` and `ob_is_fatal`: only `bootloader/main.c` calls them, and that file is not built on the PC, so no test covers the call. I read the argument order by hand.
+
+The gate itself was tried: an out-of-bounds array access added on purpose to `bootloader/rollback.c` made `tools/static_check.sh` exit with an error, and the file was then restored.
+
+Limits: passing these tools does not prove the absence of bugs. The first run found no real defect, and the one real gap (the `ctr_xor` swap) was in the tests, not in the code. In CI the tool versions are whatever Ubuntu 24.04 provides.
+
 ## Build
 Keys are not in the repository. Generate the link keys, copy them and the crypto files to the receiver, and run the link tests:
 ```bash
@@ -187,6 +213,7 @@ Then unplug USB for a few seconds (power-on reset). Do not use the RDP drop-down
 - The ST-LINK virtual COM port can go stale after replugging USB; close and reopen the terminal, and a replug can fix a blank console.
 - Restarting the frame counter after a reset reused AES-CTR keystreams: captured packets with the same counter were identical, and two differed by exactly the XOR of their plaintexts. Persisting the counter (reserve-before-use) fixed it.
 - Round-trip tests only prove both ends agree; known-answer vectors (FIPS-197, RFC 4493) prove they match the standard. A planted bug in the CMAC padding constant was caught only by the vectors.
+- Static analysis flagged two neighbouring parameters of `ctr_xor` that a caller could swap. Swapping `dev_id` and `fcnt` in both the encrypt and the decrypt call passed every test, because both ends made the same mistake. A known-answer test (`secure_link/test/test_host.c`) now compares the ciphertext with bytes computed by an independent AES in Python, and it fails on that swap. A tool warning is a question to test, not only a line to silence.
 - Known limitation: the receiver's replay floor is stored in flash in steps of 100, so after a receiver reboot up to 100 genuine packets may be rejected (availability vs flash-wear trade-off). Production options: wear-levelling, EEPROM/FRAM, or new session keys per join as in LoRaWAN OTAA.
 - Starting the app from the debugger can skip the bootloader entirely, so an app that overwrote the bootloader still looked fine. A hardware reset always starts at 0x08000000 and is the honest test of the boot chain.
 - Programmers that "run after programming" start at the first address of a .hex file. For a slot image that address is the header, not code, so the CPU crashes. Always start through a real reset.
