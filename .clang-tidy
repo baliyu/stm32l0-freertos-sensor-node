@@ -1,0 +1,22 @@
+# clang-tidy settings for the host-compilable product code
+# (bootloader: sha256 image rollback update ob_check; secure_link: aes128 aes_cmac secure_link fcnt_store).
+# Checks: CERT-style rules, bugprone checks and the clang static analyser.
+# Four checks are switched off on purpose. Each one fired on this code, every finding was
+# read, and none was a defect. The reasons:
+#
+# bugprone-easily-swappable-parameters (5 findings): a design warning about neighbouring
+#   same-type parameters. Looked at one by one: swapping dev_id/fcnt in ctr_xor passed every
+#   test, so a known-answer test was added (it now fails on that swap); swapping digest and
+#   pubkey in image_check_signature is rejected by gcc (-Werror=stringop-overread); swapping
+#   two arguments of sl_open in a test call is caught by the tests; ob_check and ob_is_fatal
+#   are called only from bootloader/main.c, which is not built on the PC (call order read by hand).
+# bugprone-implicit-widening-of-multiplication-result (4): int multiplications such as 4*i with
+#   i from 0 to 15, used as array offsets in sha256.c and aes128.c. The largest value is 63. It
+#   fires on a 64-bit PC; on the 32-bit target int and ptrdiff_t have the same width.
+# bugprone-branch-clone (1): aes_cmac.c, the CMAC padding rule. Two branches have the same body
+#   (full block, and index below the length). Read and correct; the RFC 4493 tests pass.
+# clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling (2): memset and memcpy in
+#   image.c. It asks for C11 Annex K functions, which the ARM and Linux toolchains do not have.
+#   The memset clears a public hash; both sizes are constants.
+Checks: '-*,cert-*,bugprone-*,clang-analyzer-*,-bugprone-easily-swappable-parameters,-bugprone-implicit-widening-of-multiplication-result,-bugprone-branch-clone,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling'
+WarningsAsErrors: '*'
