@@ -114,7 +114,7 @@ The strongest area is **system integrity** (FR3): signed boot, authenticated upd
 | Practice | Title | Status | Evidence or gap |
 |---|---|---|---|
 | SM | Security management (management of development) | **Partly** | One-person project: the process is captured in the README and lessons learned. No formal roles, training or documented lifecycle. |
-| SR | Specification of security requirements | **Partly** | Security goals are written down (README, `THREAT_MODEL.md`). There is no formal requirements specification with traceability to tests. |
+| SR | Specification of security requirements | **Partly** | Security goals are written down (README, `THREAT_MODEL.md`). Each threat is linked to its tests and logs in [TRACEABILITY.md](TRACEABILITY.md) (checked by `tests/traceability.py`), but there is no formal requirements specification. |
 | SD | Secure by design | **Partly** | Threat model, defence in depth (signature, anti-rollback, write protection, read-out protection, fail-closed checks) and documented residual risks. No formal design review. |
 | SI | Secure implementation | **Partly** | Crypto written from the standards and tested against known answers; third-party code pinned to a commit. No coding standard or static analysis applied. |
 | SVV | Security verification and validation testing | **Partly** | Known-answer tests, simulated power-cut tests (1,682 points), hardware verification of every lockdown step with evidence in `docs/secure_boot/`. No fuzzing, penetration test or independent testers. |

@@ -26,6 +26,7 @@ Interfaces, the image format, the memory map and the tools are in [docs/API.md](
 - [x] Secure boot stage 4: anti-rollback minimum version in data EEPROM (raised only after the signature check, power-fail safe, self-repairing); a correctly signed older image was refused on hardware
 - [x] Secure boot stage 5: power-fail-safe updates. A new image in slot B is fully verified (hash, signature, anti-rollback) before slot A is touched, copied page by page, compared, and only then cleared from B; tampered and older updates rejected with slot A untouched; a USB power cut mid-copy recovered automatically on the next boot
 - [x] Secure boot stage 6: lockdown. Bootloader sectors write-protected (the debugger could not erase a single page, while a signed update still installed); boot-time option-byte check that refuses to start if the protection is weakened; read-out protection Level 1 set through a guarded script that can never write Level 2 (debugger reads of flash and EEPROM refused, device still boots)
+- [x] Threat-to-evidence traceability: each of the 17 threats in the threat model is linked to its named tests and hardware logs, checked on every run by `tests/traceability.py` ([docs/TRACEABILITY.md](docs/TRACEABILITY.md))
 - [x] Device keys in a hardware secure element: done in [mkrwan-secure-element-node](https://github.com/baliyu/mkrwan-secure-element-node) (ATECC608, keys never leave the chip, packets byte-identical to `secure_link/`)
 
 ## Next
