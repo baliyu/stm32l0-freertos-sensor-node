@@ -454,6 +454,16 @@ Guard rails:
 Going back from Level 1 to Level 0 erases the whole flash and data EEPROM.
 ```
 
+#### `tools/serial_log.py`
+
+log a serial port with timestamps, and survive a USB pull.
+
+| Option | What it does | Notes |
+|---|---|---|
+| `--port` | serial port, for example COM5 | required |
+| `--baud` | serial speed in baud | default `115200` |
+| `--out` | log file to append to | required |
+
 #### `tools/static_check.sh`
 
 static checks (cppcheck and clang-tidy) on the host-compilable product code.
