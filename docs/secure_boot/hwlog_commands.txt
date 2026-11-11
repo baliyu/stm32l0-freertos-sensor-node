@@ -1,3 +1,29 @@
 CLI = STM32_Programmer_CLI.exe (CubeProgrammer v2.22.0), board B-L072Z-LRWAN1, 2026-11-11
 Baseline, RDP Level 1: $CLI -c port=SWD mode=UR reset=HWrst -ob displ  (saved as hwlog_baseline_locked.txt)
 P0, RDP Level 1: 8 test bytes (00 01 02 03 04 05 06 07, file deleted after the run); $CLI -c port=SWD mode=UR reset=HWrst -w p0_test.bin 0x08018000  (saved as hwlog_p0_slotB_write_locked.txt)
+Boot log, RDP Level 1: py tools\serial_log.py --port COM8 --out docs\secure_boot\hwlog_boot_locked.txt, reset button pressed once (saved as hwlog_boot_locked.txt)
+RDP regression, Level 1 to Level 0 (mass erase): $CLI -c port=SWD mode=UR -rdu  (saved as hwlog_rdp_regression.txt), 2026-11-11
+Read-back after regression: $CLI -c port=SWD mode=UR -ob displ -r32 0x08000000 64 -r32 0x08006000 64 -r32 0x08018000 64 -r32 0x08080100 16  (saved as hwlog_after_regression.txt)
+Flash bootloader with WRPOT0-5 still active: $CLI -c port=SWD mode=UR -w bootloader/bootloader.elf -v  (saved as hwlog_flash_bootloader_wrp_on.txt); bootloader.bin sha256 2a5725b5951ed1a5e1bce2fb9b9770ff7ca09ac4ced726cd4bacbe4651c4c4f0
+Clear write protection: $CLI -c port=SWD mode=UR -ob WRPOT0=0 WRPOT1=0 WRPOT2=0 WRPOT3=0 WRPOT4=0 WRPOT5=0, then -ob displ (saved as hwlog_clear_wrp.txt)
+2a5725b5951ed1a5e1bce2fb9b9770ff7ca09ac4ced726cd4bacbe4651c4c4f0  bootloader/bootloader.bin
+7d90040fcdfb40be0af9b1b5494ec7a47f486b9befa00c3030cdb4c23959a2fe  images/slotA.bin
+f91adb8c7611258c74590e1667a45a07f1af46d0a16aaad028a08c6bf1ffa1b7  images/update120.bin
+5398af535e1e871404c0b05a79a5f66ab958649ffdc36bd037e6cbd2db724534  images/update130.bin
+ac77874075a602a2dbb607c11b2bb767ed9529c6628a7beb92e6b8f466bfcc3b  images/update131.bin
+f7a76c39a107455b0988b6a0722e2c1e8430d820d6083c83eaabc6e1eb466182  images/old110.bin
+46c91ef75d2303114cd676884414e96b075a7995d371e01baaea9aaae7c81656  images/bad130.bin
+Flash at Level 0, WRPOT0-5 cleared: bootloader.elf then images/slotA.hex (v1.1.0), each with -w and -v (saved as hwlog_flash_bootloader.txt and hwlog_flash_slotA.txt)
+Set write protection again: $CLI -c port=SWD mode=UR -ob WRPOT0=1 ... WRPOT5=1, then -ob displ (saved as hwlog_set_wrp.txt)
+8d28eec3654741b224f9a8aaf57b6447c9c84b3a1a76df0453e86473e0b97d2c  images/tamper130.bin
+P1 image: python3 tools/mkimage.py --version 1.3.0 --key keys/signing_key.pem --slot B --tamper 1000 -o images/tamper130 images/update130.app.bin (one bit flipped at app offset 1000 after hashing)
+P1: flash images/tamper130.hex into slot B: $CLI -c port=SWD mode=UR -w images/tamper130.hex -v (saved as hwlog_p1_flash_tamper130.txt); then reset button pressed once; boot log in hwlog_p1_tamper130.txt
+P1 read-back of slot B after the rejected update: $CLI -c port=SWD mode=UR -r32 0x08018000 64 (saved as hwlog_p1_slotB_after.txt)
+P1b: flash images/bad130.hex into slot B (sha256 46c91ef75d2303114cd676884414e96b075a7995d371e01baaea9aaae7c81656): $CLI -c port=SWD mode=UR -w images/bad130.hex -v (saved as hwlog_p1b_flash_bad130.txt); then reset button; boot log in hwlog_p1b_bad130.txt
+P3 cut 1: flash images/update120.hex into slot B (sha256 f91adb8c7611258c74590e1667a45a07f1af46d0a16aaad028a08c6bf1ffa1b7): $CLI -c port=SWD mode=UR -w images/update120.hex -v (saved as hwlog_p3_flash_update120.txt); reset button pressed once; USB pulled during the copy; log in hwlog_p3_cut1_update120.txt
+P3 cut 2: flash images/update130.hex into slot B (sha256 5398af535e1e871404c0b05a79a5f66ab958649ffdc36bd037e6cbd2db724534), then reset button; USB pulled right after the copied 8320 line; log in hwlog_p3_cut2_update130.txt
+P3 cut 3: flash images/update131.hex into slot B (sha256 ac77874075a602a2dbb607c11b2bb767ed9529c6628a7beb92e6b8f466bfcc3b), then reset button; USB pulled right after the copied 41088 line; log in hwlog_p3_cut3_update131.txt
+P2: flash images/old110.hex (v1.1.0, sha256 f7a76c39a107455b0988b6a0722e2c1e8430d820d6083c83eaabc6e1eb466182) into slot B (hwlog_p2_flash_old110.txt); reset button pressed once; boot log in hwlog_p2_old110.txt; slot B read-back in hwlog_p2_slotB_after.txt
+Boot log after cut 1 (state check, reset button pressed once): py tools\serial_log.py --port COM8 --out docs\secure_boot\hwlog_p3_cut1_after.txt (saved as hwlog_p3_cut1_after.txt)
+First boot logged after the write protection was set again (RDP level 0, v1.1.0): py tools\serial_log.py --port COM8 --out docs\secure_boot\hwlog_firstboot_level0_v110.txt, reset button pressed once (saved as hwlog_firstboot_level0_v110.txt)
+Note: this file was rebuilt on 2026-11-11. A stray PowerShell echo had appended one line in another encoding. Null bytes and the byte-order mark were removed and a duplicated P3 cut 1 line was dropped. The damaged original is kept in a local backup. The first slot B read-back for P2 (before the reset) was overwritten by the second one with the same file name, so hwlog_p2_slotB_after.txt holds only the read-back after the reset.

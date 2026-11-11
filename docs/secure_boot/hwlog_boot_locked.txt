@@ -1,0 +1,53 @@
+    0.002  [LOGGER] start 2026-11-11T22:14:21 port=COM8 baud=115200
+    0.004  [LOGGER] port open
+    2.096  �0K���DTDTd5����TdND��@N\KD��Temp: 16.00 C
+    2.097    sleep entries: 5921, uptime: 1127 s
+    4.817  Temp: 16.06 C
+    4.817    sleep entries: 5934, uptime: 1130 s
+    7.537  Temp: 16.00 C
+    7.537    sleep entries: 5947, uptime: 1133 s
+   10.240  Temp: 16.06 C
+   10.450    TX ok: fcnt=9204 len=16 (T=16.06)
+   10.451    sleep entries: 5966, uptime: 1135 s
+   13.163  Temp: 16.06 C
+   13.164    sleep entries: 5979, uptime: 1138 s
+   15.899  Temp: 16.06 C
+   15.901    sleep entries: 5992, uptime: 1141 s
+   18.626  Temp: 16.00 C
+   18.626    sleep entries: 6006, uptime: 1144 s
+   21.346  Temp: 16.06 C
+   21.347    TX ok: fcnt=9205 len=16 (T=16.06)
+   21.348    sleep entries: 6025, uptime: 1146 s
+   24.073  Temp: 16.06 C
+   24.074    sleep entries: 6038, uptime: 1149 s
+   26.801  
+   26.801  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+   26.801  [BOOT] option bytes: RDP level 1, OPTR=0x807000BB, WRPROT1=0x0000003F
+   26.802  [BOOT] option-byte check passed
+   27.430  [BOOT] image v1.3.1, 50068 bytes
+   27.430  [BOOT] SHA-256 OK (01c40afba1d58e2d...) in 642 ms
+   29.110  [BOOT] signature OK in 1659 ms
+   29.111  [BOOT] minimum allowed version v1.3.1 (EEPROM)
+   29.111  [BOOT] jumping to application
+   29.111  
+   29.111  --- BOOT ---
+   29.321  Frame counter resumes at 9301
+   29.322  SX1276 version: 0x12 (expect 0x12)
+   29.322  LoRa init OK: 868.1 MHz, SF7, BW125
+   29.950  Temp: 16.06 C
+   29.950    TX ok: fcnt=9301 len=16 (T=16.06)
+   29.951    sleep entries: 17, uptime: 0 s
+   32.677  Temp: 16.06 C
+   32.678    sleep entries: 30, uptime: 3 s
+   35.396  Temp: 16.06 C
+   35.396    sleep entries: 43, uptime: 6 s
+   38.334  Temp: 16.06 C
+   38.335    sleep entries: 56, uptime: 9 s
+   41.040  Temp: 16.00 C
+   41.041    TX ok: fcnt=9302 len=16 (T=16.00)
+   41.041    sleep entries: 75, uptime: 11 s
+   43.755  Temp: 16.06 C
+   43.755    sleep entries: 88, uptime: 14 s
+   46.482  Temp: 16.06 C
+   46.484    sleep entries: 101, uptime: 17 s
+   47.951  [LOGGER] stopped by user

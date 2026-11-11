@@ -1,0 +1,24 @@
+    0.000  [LOGGER] start 2026-11-11T22:34:29 port=COM8 baud=115200
+    0.003  [LOGGER] port open
+    0.412  Temp: 16.18 C
+    0.413    sleep entries: 1156, uptime: 218 s
+    3.085  Temp: 16.18 C
+    3.287    TX ok: fcnt=521 len=16 (T=16.18)
+    3.288    sleep entries: 1175, uptime: 221 s
+    5.984  Temp: 16.18 C
+    5.984    sleep entries: 1188, uptime: 223 s
+   17.319  
+   17.319  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+   17.319  [BOOT] option bytes: RDP level 0, OPTR=0x807000AA, WRPROT1=0x0000003F
+   17.525  [BOOT]   WARNING: RDP level 0, a debugger can read and change flash
+   17.526  [BOOT] option-byte check passed
+   17.526  [BOOT] slot B: update found, verifying before touching slot A...
+   19.832  [BOOT]   copied 128 / 50580 bytes
+   26.756  [BOOT]   copied 8320 / 50580 bytes
+   33.668  [BOOT]   copied 16512 / 50580 bytes
+   40.579  [BOOT]   copied 24704 / 50580 bytes
+   42.997  [LOGGER] port lost
+   62.122  [LOGGER] port open
+   64.593  [BOOT]   copied 128 / 50580 bytes
+   71.625  [BOOT]   copied 8320 / 50580 bytes
+   75.403  [LOGGER] stopped by user

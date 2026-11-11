@@ -1,0 +1,80 @@
+    0.000  [LOGGER] start 2026-11-11T22:48:02 port=COM8 baud=115200
+    0.002  [LOGGER] port open
+    1.844  Temp: 16.18 C
+    1.844    sleep entries: 723, uptime: 135 s
+    4.741  Temp: 16.18 C
+    4.742    sleep entries: 736, uptime: 138 s
+   24.608  
+   24.608  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+   24.609  [BOOT] option bytes: RDP level 0, OPTR=0x807000AA, WRPROT1=0x0000003F
+   24.818  [BOOT]   WARNING: RDP level 0, a debugger can read and change flash
+   24.818  [BOOT] option-byte check passed
+   24.819  [BOOT] slot B: update found, verifying before touching slot A...
+   27.130  [BOOT]   copied 128 / 50580 bytes
+   34.037  [BOOT]   copied 8320 / 50580 bytes
+   40.951  [BOOT]   copied 16512 / 50580 bytes
+   48.062  [BOOT]   copied 24704 / 50580 bytes
+   54.977  [BOOT]   copied 32896 / 50580 bytes
+   61.847  [BOOT]   copied 41088 / 50580 bytes
+   65.038  [LOGGER] port lost
+   92.175  [LOGGER] port open
+   94.676  [BOOT]   copied 128 / 50580 bytes
+  101.546  [BOOT]   copied 8320 / 50580 bytes
+  108.475  [BOOT]   copied 16512 / 50580 bytes
+  115.387  [BOOT]   copied 24704 / 50580 bytes
+  122.286  [BOOT]   copied 32896 / 50580 bytes
+  129.362  [BOOT]   copied 41088 / 50580 bytes
+  136.282  [BOOT]   copied 49280 / 50580 bytes
+  137.332  [BOOT]   copied 50580 / 50580 bytes
+  137.332  [BOOT] slot B: v1.3.1: update installed in 15595 ms
+  137.960  [BOOT] image v1.3.1, 50068 bytes
+  137.961  [BOOT] SHA-256 OK (01c40afba1d58e2d...) in 642 ms
+  139.637  [BOOT] signature OK in 1659 ms
+  139.638  [BOOT] minimum allowed version v1.3.0 (EEPROM)
+  139.638  [BOOT] minimum version raised to v1.3.1
+  139.638  [BOOT] jumping to application
+  139.638  
+  139.639  --- BOOT ---
+  139.848  Frame counter resumes at 1001
+  139.848  SX1276 version: 0x12 (expect 0x12)
+  139.848  LoRa init OK: 868.1 MHz, SF7, BW125
+  140.480  Temp: 16.18 C
+  140.480    TX ok: fcnt=1001 len=16 (T=16.18)
+  140.481    sleep entries: 17, uptime: 0 s
+  143.208  Temp: 16.18 C
+  143.209    sleep entries: 30, uptime: 3 s
+  145.935  Temp: 16.18 C
+  145.936    sleep entries: 43, uptime: 6 s
+  148.864  Temp: 16.18 C
+  148.864    sleep entries: 56, uptime: 9 s
+  151.589  Temp: 16.18 C
+  151.589    TX ok: fcnt=1002 len=16 (T=16.18)
+  151.589    sleep entries: 75, uptime: 11 s
+  154.312  Temp: 16.18 C
+  154.313    sleep entries: 88, uptime: 14 s
+  157.038  Temp: 16.18 C
+  157.039    sleep entries: 101, uptime: 17 s
+  159.763  Temp: 16.18 C
+  159.763    sleep entries: 114, uptime: 20 s
+  162.489  Temp: 16.25 C
+  162.698    TX ok: fcnt=1003 len=16 (T=16.25)
+  162.699    sleep entries: 133, uptime: 22 s
+  165.415  Temp: 16.18 C
+  165.416    sleep entries: 146, uptime: 25 s
+  168.137  Temp: 16.18 C
+  168.137    sleep entries: 159, uptime: 28 s
+  170.853  Temp: 16.18 C
+  170.853    sleep entries: 172, uptime: 31 s
+  173.571  Temp: 16.18 C
+  173.572    TX ok: fcnt=1004 len=16 (T=16.18)
+  173.572    sleep entries: 191, uptime: 33 s
+  176.291  Temp: 16.18 C
+  176.291    sleep entries: 204, uptime: 36 s
+  179.216  Temp: 16.25 C
+  179.216    sleep entries: 217, uptime: 39 s
+  181.905  Temp: 16.18 C
+  181.905    sleep entries: 230, uptime: 42 s
+  184.620  Temp: 16.25 C
+  184.620    TX ok: fcnt=1005 len=16 (T=16.25)
+  184.620    sleep entries: 249, uptime: 44 s
+  185.882  [LOGGER] stopped by user

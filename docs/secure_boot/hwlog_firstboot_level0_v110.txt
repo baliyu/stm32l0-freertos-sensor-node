@@ -1,0 +1,40 @@
+    0.001  [LOGGER] start 2026-11-11T22:23:40 port=COM8 baud=115200
+    0.003  [LOGGER] port open
+    1.454  Temp: 16.31 C
+    1.455    sleep entries: 262, uptime: 47 s
+    4.178  Temp: 16.31 C
+    4.179    sleep entries: 275, uptime: 50 s
+    6.907  Temp: 16.25 C
+    6.907    sleep entries: 288, uptime: 53 s
+    9.706  
+    9.707  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+    9.708  [BOOT] option bytes: RDP level 0, OPTR=0x807000AA, WRPROT1=0x0000003F
+    9.917  [BOOT]   WARNING: RDP level 0, a debugger can read and change flash
+    9.919  [BOOT] option-byte check passed
+   10.546  [BOOT] image v1.1.0, 50068 bytes
+   10.547  [BOOT] SHA-256 OK (022bc161f2d10ee7...) in 642 ms
+   12.220  [BOOT] signature OK in 1669 ms
+   12.220  [BOOT] minimum allowed version v1.1.0 (EEPROM)
+   12.221  [BOOT] jumping to application
+   12.221  
+   12.222  --- BOOT ---
+   12.222  Frame counter resumes at 201
+   12.222  SX1276 version: 0x12 (expect 0x12)
+   12.223  LoRa init OK: 868.1 MHz, SF7, BW125
+   12.846  Temp: 16.25 C
+   13.056    TX ok: fcnt=201 len=16 (T=16.25)
+   13.057    sleep entries: 17, uptime: 0 s
+   15.778  Temp: 16.31 C
+   15.779    sleep entries: 31, uptime: 3 s
+   18.497  Temp: 16.31 C
+   18.498    sleep entries: 44, uptime: 6 s
+   21.223  Temp: 16.31 C
+   21.223    sleep entries: 57, uptime: 9 s
+   23.955  Temp: 16.31 C
+   23.956    TX ok: fcnt=202 len=16 (T=16.31)
+   23.956    sleep entries: 76, uptime: 11 s
+   26.681  Temp: 16.31 C
+   26.682    sleep entries: 89, uptime: 14 s
+   29.405  Temp: 16.31 C
+   29.405    sleep entries: 102, uptime: 17 s
+   30.453  [LOGGER] stopped by user

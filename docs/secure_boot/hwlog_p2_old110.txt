@@ -1,0 +1,81 @@
+    0.001  [LOGGER] start 2026-11-11T22:53:01 port=COM8 baud=115200
+    0.003  [LOGGER] port open
+    1.634  Temp: 16.18 C
+    1.634    sleep entries: 852, uptime: 160 s
+    4.320  Temp: 16.25 C
+    4.320    sleep entries: 865, uptime: 163 s
+    7.045  Temp: 16.25 C
+    7.254    TX ok: fcnt=1016 len=16 (T=16.25)
+    7.255    sleep entries: 884, uptime: 166 s
+    9.766  Temp: 16.25 C
+    9.976    sleep entries: 897, uptime: 168 s
+   16.640  
+   16.640  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+   16.640  [BOOT] option bytes: RDP level 0, OPTR=0x807000AA, WRPROT1=0x0000003F
+   16.846  [BOOT]   WARNING: RDP level 0, a debugger can read and change flash
+   16.846  [BOOT] option-byte check passed
+   16.847  [BOOT] slot B: update found, verifying before touching slot A...
+   19.155  [BOOT] slot B: v1.1.0: update REJECTED, slot B erased, slot A untouched (older than the minimum allowed version) in 2335 ms
+   19.782  [BOOT] image v1.3.1, 50068 bytes
+   19.782  [BOOT] SHA-256 OK (01c40afba1d58e2d...) in 641 ms
+   21.449  [BOOT] signature OK in 1659 ms
+   21.449  [BOOT] minimum allowed version v1.3.1 (EEPROM)
+   21.450  [BOOT] jumping to application
+   21.450  
+   21.451  --- BOOT ---
+   21.451  Frame counter resumes at 1101
+   21.452  SX1276 version: 0x12 (expect 0x12)
+   21.452  LoRa init OK: 868.1 MHz, SF7, BW125
+   22.284  Temp: 16.25 C
+   22.284    TX ok: fcnt=1101 len=16 (T=16.25)
+   22.285    sleep entries: 17, uptime: 0 s
+   22.963  
+   22.963  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+   22.964  [BOOT] option bytes: RDP level 0, OPTR=0x807000AA, WRPROT1=0x0000003F
+   23.171  [BOOT]   WARNING: RDP level 0, a debugger can read and change flash
+   23.172  [BOOT] option-byte check passed
+   23.800  [BOOT] image v1.3.1, 50068 bytes
+   23.801  [BOOT] SHA-256 OK (01c40afba1d58e2d...) in 642 ms
+   25.472  [BOOT] signature OK in 1659 ms
+   25.473  [BOOT] minimum allowed version v1.3.1 (EEPROM)
+   25.473  [BOOT] jumping to application
+   25.474  
+   25.474  --- BOOT ---
+   25.475  Frame counter resumes at 1201
+   25.475  SX1276 version: 0x12 (expect 0x12)
+   25.476  LoRa init OK: 868.1 MHz, SF7, BW125
+   26.099  Temp: 16.25 C
+   26.307    TX ok: fcnt=1201 len=16 (T=16.25)
+   26.307    sleep entries: 17, uptime: 0 s
+   29.035  Temp: 16.25 C
+   29.036    sleep entries: 30, uptime: 3 s
+   31.747  Temp: 16.25 C
+   31.747    sleep entries: 43, uptime: 6 s
+   34.480  Temp: 16.25 C
+   34.480    sleep entries: 56, uptime: 9 s
+   37.201  Temp: 16.25 C
+   37.201    TX ok: fcnt=1202 len=16 (T=16.25)
+   37.202    sleep entries: 75, uptime: 11 s
+   39.925  Temp: 16.25 C
+   39.925    sleep entries: 88, uptime: 14 s
+   42.858  Temp: 16.25 C
+   42.858    sleep entries: 101, uptime: 17 s
+   45.573  Temp: 16.18 C
+   45.573    sleep entries: 114, uptime: 20 s
+   48.302  Temp: 16.25 C
+   48.302    TX ok: fcnt=1203 len=16 (T=16.25)
+   48.303    sleep entries: 133, uptime: 22 s
+   51.026  Temp: 16.18 C
+   51.026    sleep entries: 146, uptime: 25 s
+   53.759  Temp: 16.25 C
+   53.760    sleep entries: 159, uptime: 28 s
+   56.478  Temp: 16.18 C
+   56.478    sleep entries: 172, uptime: 31 s
+   59.203  Temp: 16.18 C
+   59.412    TX ok: fcnt=1204 len=16 (T=16.18)
+   59.412    sleep entries: 191, uptime: 33 s
+   62.130  Temp: 16.25 C
+   62.130    sleep entries: 204, uptime: 36 s
+   64.849  Temp: 16.18 C
+   64.849    sleep entries: 217, uptime: 39 s
+   65.894  [LOGGER] stopped by user

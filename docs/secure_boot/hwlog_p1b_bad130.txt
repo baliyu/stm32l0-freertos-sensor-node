@@ -1,0 +1,58 @@
+    0.000  [LOGGER] start 2026-11-11T22:30:30 port=COM8 baud=115200
+    0.003  [LOGGER] port open
+    2.708  Temp: 16.25 C
+    2.708    sleep entries: 57, uptime: 9 s
+    5.373  Temp: 16.25 C
+    5.585    TX ok: fcnt=402 len=16 (T=16.25)
+    5.586    sleep entries: 76, uptime: 11 s
+    8.311  Temp: 16.25 C
+    8.312    sleep entries: 89, uptime: 14 s
+   17.600  
+   17.600  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+   17.600  [BOOT] option bytes: RDP level 0, OPTR=0x807000AA, WRPROT1=0x0000003F
+   17.660  [BOOT]   WARNING: RDP level 0, a debugger can read and change flash
+   17.661  [BOOT] option-byte check passed
+   17.661  [BOOT] slot B: update found, verifying before touching slot A...
+   17.661  
+   17.661  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+   17.866  [BOOT] option bytes: RDP level 0, OPTR=0x807000AA, WRPROT1=0x0000003F
+   17.867  [BOOT]   WARNING: RDP level 0, a debugger can read and change flash
+   17.868  [BOOT] option-byte check passed
+   17.868  [BOOT] slot B: update found, verifying before touching slot A...
+   18.491  [BOOT] slot B: v1.3.0: update REJECTED, slot B erased, slot A untouched (SHA-256 MISMATCH: image corrupted or modified) in 645 ms
+   19.120  [BOOT] image v1.1.0, 50068 bytes
+   19.121  [BOOT] SHA-256 OK (022bc161f2d10ee7...) in 642 ms
+   20.795  [BOOT] signature OK in 1669 ms
+   20.796  [BOOT] minimum allowed version v1.1.0 (EEPROM)
+   20.796  [BOOT] jumping to application
+   20.797  
+   20.797  --- BOOT ---
+   20.798  Frame counter resumes at 501
+   20.798  SX1276 version: 0x12 (expect 0x12)
+   20.798  LoRa init OK: 868.1 MHz, SF7, BW125
+   21.620  Temp: 16.25 C
+   21.620    TX ok: fcnt=501 len=16 (T=16.25)
+   21.620    sleep entries: 17, uptime: 0 s
+   24.318  Temp: 16.25 C
+   24.319    sleep entries: 31, uptime: 3 s
+   27.038  Temp: 16.25 C
+   27.038    sleep entries: 44, uptime: 6 s
+   29.767  Temp: 16.25 C
+   29.768    sleep entries: 57, uptime: 9 s
+   32.693  Temp: 16.25 C
+   32.694    TX ok: fcnt=502 len=16 (T=16.25)
+   32.694    sleep entries: 76, uptime: 11 s
+   35.418  Temp: 16.25 C
+   35.418    sleep entries: 89, uptime: 14 s
+   38.141  Temp: 16.25 C
+   38.141    sleep entries: 102, uptime: 17 s
+   40.867  Temp: 16.18 C
+   40.868    sleep entries: 115, uptime: 20 s
+   43.589  Temp: 16.25 C
+   43.799    TX ok: fcnt=503 len=16 (T=16.25)
+   43.800    sleep entries: 134, uptime: 22 s
+   46.312  Temp: 16.25 C
+   46.312    sleep entries: 147, uptime: 25 s
+   49.238  Temp: 16.25 C
+   49.238    sleep entries: 160, uptime: 28 s
+   49.657  [LOGGER] stopped by user

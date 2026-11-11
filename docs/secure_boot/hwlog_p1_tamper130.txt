@@ -1,0 +1,99 @@
+    0.000  [LOGGER] start 2026-11-11T22:26:51 port=COM8 baud=115200
+    0.003  [LOGGER] port open
+    0.003  31 C
+    0.003    sleep entries: 115, uptime: 20 s
+    0.003  Temp: 16.31 C
+    0.003    TX ok: fcnt=203 len=16 (T=16.31)
+    0.003    sleep entries: 134, uptime: 22 s
+    0.004  Temp: 16.31 C
+    0.004    sleep entries: 147, uptime: 25 s
+    0.004  Temp: 16.31 C
+    0.004    sleep entries: 160, uptime: 28 s
+    0.004  Temp: 16.31 C
+    0.202    sleep entries: 173, uptime: 31 s
+    0.203  Temp: 16.31 C
+    0.203    TX ok: fcnt=204 len=16 (T=16.31)
+    0.204    sleep entries: 192, uptime: 33 s
+    0.205  Temp: 16.31 C
+    0.205    sleep entries: 205, uptime: 36 s
+    1.869  Temp: 16.31 Temp: 16.31 C
+    2.071    sleep entries: 958, uptime: 179 s
+    4.763  Temp: 16.31 C
+    4.763    sleep entries: 971, uptime: 182 s
+    7.481  Temp: 16.31 C
+    7.482    sleep entries: 984, uptime: 185 s
+   18.700  
+   18.701  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+   18.701  [BOOT] option bytes: RDP level 0, OPTR=0x807000AA, WRPROT1=0x0000003F
+   18.904  [BOOT]   WARNING: RDP level 0, a debugger can read and change flash
+   18.904  [BOOT] option-byte check passed
+   18.904  [BOOT] slot B: update found, verifying before touching slot A...
+   19.525  [BOOT] slot B: v1.3.0: update REJECTED, slot B erased, slot A untouched (SHA-256 MISMATCH: image corrupted or modified) in 645 ms
+   20.160  [BOOT] image v1.1.0, 50068 bytes
+   20.160  [BOOT] SHA-256 OK (022bc161f2d10ee7...) in 642 ms
+   21.835  [BOOT] signature OK in 1669 ms
+   21.836  [BOOT] minimum allowed version v1.1.0 (EEPROM)
+   21.836  [BOOT] jumping to application
+   21.836  
+   21.836  --- BOOT ---
+   21.837  Frame counter resumes at 301
+   21.837  SX1276 version: 0x12 (expect 0x12)
+   21.837  LoRa init OK: 868.1 MHz, SF7, BW125
+   22.674  Temp: 16.31 C
+   22.674    TX ok: fcnt=301 len=16 (T=16.31)
+   22.674    sleep entries: 17, uptime: 0 s
+   25.400  Temp: 16.25 C
+   25.401    sleep entries: 31, uptime: 3 s
+   28.119  Temp: 16.31 C
+   28.120    sleep entries: 44, uptime: 6 s
+   30.842  Temp: 16.31 C
+   30.842    sleep entries: 57, uptime: 9 s
+   33.542  Temp: 16.25 C
+   33.751    TX ok: fcnt=302 len=16 (T=16.25)
+   33.751    sleep entries: 76, uptime: 11 s
+   36.467  Temp: 16.25 C
+   36.467    sleep entries: 89, uptime: 14 s
+   39.192  Temp: 16.25 C
+   39.192    sleep entries: 102, uptime: 17 s
+   41.916  Temp: 16.31 C
+   41.917    sleep entries: 115, uptime: 20 s
+   44.651  Temp: 16.25 C
+   44.651    TX ok: fcnt=303 len=16 (T=16.25)
+   44.652    sleep entries: 134, uptime: 22 s
+   47.388  Temp: 16.31 C
+   47.388    sleep entries: 147, uptime: 25 s
+   50.115  Temp: 16.25 C
+   50.116    sleep entries: 160, uptime: 28 s
+   53.050  Temp: 16.25 C
+   53.051    sleep entries: 173, uptime: 31 s
+   55.778  Temp: 16.31 C
+   55.779    TX ok: fcnt=304 len=16 (T=16.31)
+   55.779    sleep entries: 192, uptime: 33 s
+   58.506  Temp: 16.25 C
+   58.506    sleep entries: 205, uptime: 36 s
+   61.230  Temp: 16.25 C
+   61.230    sleep entries: 218, uptime: 39 s
+   63.960  Temp: 16.25 C
+   63.960    sleep entries: 231, uptime: 42 s
+   66.679  Temp: 16.25 C
+   66.886    TX ok: fcnt=305 len=16 (T=16.25)
+   66.887    sleep entries: 250, uptime: 44 s
+   69.400  Temp: 16.25 C
+   69.607    sleep entries: 263, uptime: 47 s
+   72.320  Temp: 16.25 C
+   72.321    sleep entries: 276, uptime: 50 s
+   75.044  Temp: 16.25 C
+   75.044    sleep entries: 289, uptime: 53 s
+   77.776  Temp: 16.25 C
+   77.776    TX ok: fcnt=306 len=16 (T=16.25)
+   77.777    sleep entries: 308, uptime: 55 s
+   80.507  Temp: 16.25 C
+   80.508    sleep entries: 321, uptime: 58 s
+   83.233  Temp: 16.25 C
+   83.233    sleep entries: 334, uptime: 61 s
+   85.959  Temp: 16.25 C
+   85.960    sleep entries: 347, uptime: 64 s
+   88.886  Temp: 16.25 C
+   88.886    TX ok: fcnt=307 len=16 (T=16.25)
+   88.887    sleep entries: 366, uptime: 66 s
+   90.765  [LOGGER] stopped by user

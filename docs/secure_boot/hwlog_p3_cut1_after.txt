@@ -1,0 +1,48 @@
+    0.000  [LOGGER] start 2026-11-11T22:39:12 port=COM8 baud=115200
+    0.003  [LOGGER] port open
+    1.253  Temp: 16.18 C
+    1.461    TX ok: fcnt=711 len=16 (T=16.18)
+    1.461    sleep entries: 599, uptime: 111 s
+    4.185  Temp: 16.18 C
+    4.186    sleep entries: 611, uptime: 113 s
+    5.835  
+    5.835  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+    5.835  [BOOT] option bytes: RDP level 0, OPTR=0x807000AA, WRPROT1=0x0000003F
+    6.041  [BOOT]   WARNING: RDP level 0, a debugger can read and change flash
+    6.044  [BOOT] option-byte check passed
+    6.668  [BOOT] image v1.2.0, 50068 bytes
+    6.668  [BOOT] SHA-256 OK (b9cf9b387a7a9852...) in 642 ms
+    8.135  [BOOT] signature OK in 1632 ms
+    8.135  [BOOT] minimum allowed version v1.2.0 (EEPROM)
+    8.136  [BOOT] jumping to application
+    8.345  
+    8.345  --- BOOT ---
+    8.346  Frame counter resumes at 801
+    8.346  SX1276 version: 0x12 (expect 0x12)
+    8.346  LoRa init OK: 868.1 MHz, SF7, BW125
+    8.973  Temp: 16.18 C
+    9.181    TX ok: fcnt=801 len=16 (T=16.18)
+    9.181    sleep entries: 17, uptime: 0 s
+   11.698  Temp: 16.18 C
+   11.699    sleep entries: 31, uptime: 3 s
+   14.632  Temp: 16.18 C
+   14.632    sleep entries: 44, uptime: 6 s
+   17.358  Temp: 16.18 C
+   17.358    sleep entries: 57, uptime: 9 s
+   20.075  Temp: 16.18 C
+   20.075    TX ok: fcnt=802 len=16 (T=16.18)
+   20.076    sleep entries: 76, uptime: 11 s
+   22.803  Temp: 16.18 C
+   22.803    sleep entries: 89, uptime: 14 s
+   25.528  Temp: 16.18 C
+   25.529    sleep entries: 102, uptime: 17 s
+   28.247  Temp: 16.18 C
+   28.247    sleep entries: 115, uptime: 20 s
+   31.183  Temp: 16.18 C
+   31.184    TX ok: fcnt=803 len=16 (T=16.18)
+   31.184    sleep entries: 134, uptime: 22 s
+   33.906  Temp: 16.18 C
+   33.906    sleep entries: 147, uptime: 25 s
+   36.621  Temp: 16.18 C
+   36.621    sleep entries: 160, uptime: 28 s
+   39.130  [LOGGER] stopped by user
