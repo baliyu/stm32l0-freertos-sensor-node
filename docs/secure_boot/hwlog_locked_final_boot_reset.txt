@@ -1,0 +1,122 @@
+    0.000  [LOGGER] start 2026-11-11T23:42:08 port=COM8 baud=115200
+    0.002  [LOGGER] port open
+    0.198  Temp: 15.62 C
+    0.406    sleep entries: 1257, uptime: 237 s
+    3.129  Temp: 15.56 C
+    3.130    sleep entries: 1270, uptime: 240 s
+    5.830  Temp: 15.62 C
+    5.831    TX ok: fcnt=2023 len=16 (T=15.62)
+    5.831    sleep entries: 1290, uptime: 243 s
+    6.670  
+    6.877  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+    6.878  [BOOT] option bytes: RDP level 1, OPTR=0x807000BB, WRPROT1=0x0000003F
+    6.880  [BOOT] option-byte check passed
+    7.498  [BOOT] image v1.3.2, 50068 bytes
+    7.498  [BOOT] SHA-256 OK (757146ff04ee63fd...) in 642 ms
+    9.168  [BOOT] signature OK in 1647 ms
+    9.168  [BOOT] minimum allowed version v1.3.2 (EEPROM)
+    9.169  [BOOT] jumping to application
+    9.170  
+    9.170  --- BOOT ---
+    9.171  Frame counter resumes at 2101
+    9.171  SX1276 version: 0x12 (expect 0x12)
+    9.172  LoRa init OK: 868.1 MHz, SF7, BW125
+    9.793  Temp: 15.62 C
+   10.003    TX ok: fcnt=2101 len=16 (T=15.62)
+   10.003    sleep entries: 18, uptime: 0 s
+   12.730  Temp: 15.62 C
+   12.731    sleep entries: 31, uptime: 3 s
+   15.453  Temp: 15.62 C
+   15.453    sleep entries: 44, uptime: 6 s
+   18.187  Temp: 15.62 C
+   18.188    sleep entries: 57, uptime: 9 s
+   20.906  Temp: 15.56 C
+   20.906    TX ok: fcnt=2102 len=16 (T=15.56)
+   20.906    sleep entries: 76, uptime: 11 s
+   23.635  Temp: 15.56 C
+   23.635    sleep entries: 89, uptime: 14 s
+   26.360  Temp: 15.56 C
+   26.360    sleep entries: 102, uptime: 17 s
+   29.286  Temp: 15.56 C
+   29.286    sleep entries: 115, uptime: 20 s
+   31.998  Temp: 15.56 C
+   31.998    TX ok: fcnt=2103 len=16 (T=15.56)
+   31.998    sleep entries: 134, uptime: 22 s
+   34.717  Temp: 15.62 C
+   34.717    sleep entries: 147, uptime: 25 s
+   37.431  Temp: 15.56 C
+   37.431    sleep entries: 160, uptime: 28 s
+   40.152  Temp: 15.62 C
+   40.153    sleep entries: 173, uptime: 31 s
+   43.080  Temp: 15.62 C
+   43.080    TX ok: fcnt=2104 len=16 (T=15.62)
+   43.080    sleep entries: 192, uptime: 33 s
+   45.816  Temp: 15.56 C
+   45.816    sleep entries: 205, uptime: 36 s
+   48.540  Temp: 15.62 C
+   48.540    sleep entries: 218, uptime: 39 s
+   51.266  Temp: 15.56 C
+   51.267    sleep entries: 231, uptime: 42 s
+   53.984  Temp: 15.62 C
+   54.192    TX ok: fcnt=2105 len=16 (T=15.62)
+   54.193    sleep entries: 250, uptime: 44 s
+   56.707  Temp: 15.56 C
+   56.708    sleep entries: 263, uptime: 47 s
+   59.631  Temp: 15.56 C
+   59.632    sleep entries: 276, uptime: 50 s
+   62.358  Temp: 15.56 C
+   62.358    sleep entries: 289, uptime: 53 s
+   65.076  Temp: 15.56 C
+   65.076    TX ok: fcnt=2106 len=16 (T=15.56)
+   65.076    sleep entries: 308, uptime: 55 s
+   67.778  Temp: 15.62 C
+   67.779    sleep entries: 321, uptime: 58 s
+   70.490  Temp: 15.56 C
+   70.695    sleep entries: 334, uptime: 61 s
+   73.424  Temp: 15.62 C
+   73.425    sleep entries: 347, uptime: 64 s
+   76.128  Temp: 15.62 C
+   76.128    TX ok: fcnt=2107 len=16 (T=15.62)
+   76.129    sleep entries: 366, uptime: 66 s
+   78.860  Temp: 15.62 C
+   78.861    sleep entries: 379, uptime: 69 s
+   81.589  Temp: 15.62 C
+   81.589    sleep entries: 392, uptime: 72 s
+   84.317  Temp: 15.56 C
+   84.318    sleep entries: 405, uptime: 75 s
+   87.048  Temp: 15.56 C
+   87.252    TX ok: fcnt=2108 len=16 (T=15.56)
+   87.252    sleep entries: 424, uptime: 77 s
+   89.984  Temp: 15.56 C
+   89.985    sleep entries: 437, uptime: 80 s
+   92.714  Temp: 15.62 C
+   92.714    sleep entries: 450, uptime: 83 s
+   95.447  Temp: 15.62 C
+   95.447    sleep entries: 463, uptime: 86 s
+   98.134  Temp: 15.62 C
+   98.344    TX ok: fcnt=2109 len=16 (T=15.62)
+   98.345    sleep entries: 482, uptime: 88 s
+  100.852  Temp: 15.62 C
+  100.852    sleep entries: 495, uptime: 91 s
+  101.477  [LOGGER] stopped by user
+    0.000  [LOGGER] start 2026-11-11T23:46:50 port=COM8 baud=115200
+    0.002  [LOGGER] port open
+    1.041  Temp: 15.56 C
+    1.041    sleep entries: 101, uptime: 17 s
+    3.951  Temp: 15.56 C
+    3.954    sleep entries: 114, uptime: 20 s
+    6.673  Temp: 15.56 C
+    6.673    TX ok: fcnt=2203 len=16 (T=15.56)
+    6.673    sleep entries: 133, uptime: 22 s
+    9.390  Temp: 15.56 C
+    9.390    sleep entries: 146, uptime: 25 s
+   12.094  Temp: 15.56 C
+   12.094    sleep entries: 159, uptime: 28 s
+   14.986  Temp: 15.56 C
+   14.986    sleep entries: 172, uptime: 31 s
+   17.718  Temp: 15.56 C
+   17.719    TX ok: fcnt=2204 len=16 (T=15.56)
+   17.719    sleep entries: 191, uptime: 33 s
+   20.420  Temp: 15.56 C
+   20.421    sleep entries: 204, uptime: 36 s
+   23.118  [LOGGER] stopped by user

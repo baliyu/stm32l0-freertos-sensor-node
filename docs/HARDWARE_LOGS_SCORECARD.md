@@ -29,10 +29,28 @@ The pull was by hand, so each cut fell later than aimed. Positions are interpola
 | 2 | `update130` v1.3.0 | 8,320 / 50,580 | 27% | Copy restarted from the beginning, `update installed`, v1.3.0 started, minimum raised to v1.3.0 |
 | 3 | `update131` v1.3.1 | 41,088 / 50,580 | 89% | Copy restarted from the beginning, `update installed`, v1.3.1 started, minimum raised to v1.3.1 |
 
+## Key rotation and re-lock
+
+After the update tests I rotated the link keys (the frame counter had been reset by the mass erase, which would reuse keystreams with the old keys), installed the rebuilt app as v1.3.2 through slot B at Level 0, updated the Feather receiver, and set read-out protection Level 1 again. These predictions were written in the chat before each step. They were not committed to git first.
+
+| # | Prediction | What the log shows | Outcome |
+|---|---|---|---|
+| K1 | The rebuilt app stays 50,068 bytes, the signed image is 50,580 bytes, and the hash is new | Build succeeded. 50,068 and 50,580 bytes. Signed image hash ce0da68c against ac778740 for update131 | Hit |
+| K2 | 25 to 32 bytes differ from the old app, all in one small region | 32 bytes differ, all between file positions 49,589 and 49,620, where the two 16-byte keys sit | Hit, at the top of the range |
+| K3 | Uploading the new sketch to the Feather keeps its old stored replay floor | After the upload it printed "No stored replay floor (fresh flash)" | **Miss** |
+| K4 | With the new keys the Feather verifies readings within about 11 s of the app starting | Counters 1501 to 1517 verified about 1 s after the app started. Counter 1508 was sent by the board but is not in the Feather output, and I do not know why | Hit |
+| K5 | The v1.3.2 install reports about 15.6 s while the PC clock shows about 43 s | `update installed in 15548 ms`. PC clock 42.7 s | Hit. The discrepancy is now seen on four installs |
+| L1 | The lock script's precondition check passes | Level 0, sectors 0 to 5 protected, WPRMOD 0, BFB2 0, all preconditions met | Hit |
+| L2 | Level 1 is set and reads back as 0xBB | After a typed confirmation: OPTR=0x807000BB, "Read-out protection is now LEVEL 1" | Hit |
+| L3 | The locked board boots v1.3.2, the option-byte check passes, with no warning | RDP level 1, OPTR=0x807000BB, WRPROT1=0x0000003F, check passed, no warning. Image v1.3.2 verified, minimum v1.3.2, no copy lines. Frame counter resumed at 2101 and no counter repeated | Hit |
+| L4 | A debugger read of slot A is refused at Level 1 | `failed to read the requested memory content` | Hit |
+| L5 | A debugger read of the anti-rollback EEPROM record is refused at Level 1 | The same error, in a separate command | Hit |
+
 ## Misses and what they mean
 
 - **P1b:** my inference that `bad130` carried a bad signature was wrong. The bootloader refuses it at the hash check. I did not find out how `bad130` differs from `update130` beyond the first differing bytes.
 - **P4:** my estimate of 15 to 25 s came from the README figure of a 15.5 s install, which the logs do not support (see below).
+- **K3:** I expected the Feather's stored replay floor to survive a sketch upload and planned a step to clear it. It did not survive, so the step was not needed. I do not know why, and I did not test whether the floor is stored in a region the upload erases.
 
 ## An unexplained discrepancy
 
@@ -46,12 +64,15 @@ The bootloader prints `update installed in 15614 ms` (cut 2) and `15595 ms` (cut
 - Pulling USB removes power and the serial port together, and brown-out reset is off in the factory setting. This is a hard pull, not a controlled supply drop or a slow brown-out.
 - All update tests ran at Level 0, as stated in each log. One board, one cable, three hand-timed cuts.
 - Slot B was only read back at the start of the region (64 bytes).
+- The first boot log of the locked board, taken after unplugging USB, did not capture the option-byte line, because the serial port reopened after the banner had printed. A second capture, started the same way but using the reset button, caught it.
+- The locked final boot reset log holds two logger sessions, because the logger appends to its file and I started it twice. The second session begins after the boot lines.
+- The first locked read-back command stopped at its first error, so the EEPROM read was run as a separate command.
+- The Feather's console lines were pasted by hand from the Arduino Serial Monitor and are not a saved log.
 
 ## Still to do
 
-- Set read-out protection Level 1 again with `tools/rdp_level1.sh` and log it.
-- Rotate the link keys and check the Feather receiver, because the frame counter was reset.
 - Find the cause of the timer discrepancy and correct the README.
+- Find out why counter 1508 did not reach the Feather.
 
 ## AI assistance
 

@@ -1,0 +1,9 @@
+     RDP          : 0xBB (or any value other than 0xAA and 0xCC: Level 1, read protection) 
+     WRPOT0       : 0x1 (Write protection active) 
+     WRPOT1       : 0x1 (Write protection active) 
+     WRPOT2       : 0x1 (Write protection active) 
+     WRPOT3       : 0x1 (Write protection active) 
+     WRPOT4       : 0x1 (Write protection active) 
+     WRPOT5       : 0x1 (Write protection active) 
+  Address:      : 0x08006000
+Error: failed to read the requested memory content

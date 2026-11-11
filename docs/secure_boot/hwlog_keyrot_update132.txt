@@ -1,0 +1,154 @@
+    0.001  [LOGGER] start 2026-11-11T23:13:43 port=COM8 baud=115200
+   54.152  [LOGGER] stopped by user
+    0.002  [LOGGER] start 2026-11-11T23:14:48 port=COM8 baud=115200
+   50.404  [LOGGER] stopped by user
+    0.000  [LOGGER] start 2026-11-11T23:18:15 port=COM8 baud=115200
+    0.002  [LOGGER] port open
+    0.844  Temp: 15.81 C
+    0.844    sleep entries: 275, uptime: 50 s
+    3.725  Temp: 15.81 C
+    3.725    sleep entries: 288, uptime: 53 s
+   27.915  
+   27.916  [BOOT] stage 6 bootloader: SHA-256 + ECDSA P-256 + anti-rollback + updates + option-byte check, trusted key id e4edbc95
+   27.918  [BOOT] option bytes: RDP level 0, OPTR=0x807000AA, WRPROT1=0x0000003F
+   28.129  [BOOT]   WARNING: RDP level 0, a debugger can read and change flash
+   28.129  [BOOT] option-byte check passed
+   28.129  [BOOT] slot B: update found, verifying before touching slot A...
+   30.420  [BOOT]   copied 128 / 50580 bytes
+   37.296  [BOOT]   copied 8320 / 50580 bytes
+   44.221  [BOOT]   copied 16512 / 50580 bytes
+   51.133  [BOOT]   copied 24704 / 50580 bytes
+   58.228  [BOOT]   copied 32896 / 50580 bytes
+   65.126  [BOOT]   copied 41088 / 50580 bytes
+   72.031  [BOOT]   copied 49280 / 50580 bytes
+   73.078  [BOOT]   copied 50580 / 50580 bytes
+   73.079  [BOOT] slot B: v1.3.2: update installed in 15548 ms
+   73.703  [BOOT] image v1.3.2, 50068 bytes
+   73.704  [BOOT] SHA-256 OK (757146ff04ee63fd...) in 641 ms
+   75.363  [BOOT] signature OK in 1647 ms
+   75.363  [BOOT] minimum allowed version v1.3.1 (EEPROM)
+   75.579  [BOOT] minimum version raised to v1.3.2
+   75.580  [BOOT] jumping to application
+   75.580  
+   75.580  --- BOOT ---
+   75.580  Frame counter resumes at 1501
+   75.580  SX1276 version: 0x12 (expect 0x12)
+   75.580  LoRa init OK: 868.1 MHz, SF7, BW125
+   76.196  Temp: 15.81 C
+   76.411    TX ok: fcnt=1501 len=16 (T=15.81)
+   76.411    sleep entries: 17, uptime: 0 s
+   79.116  Temp: 15.81 C
+   79.117    sleep entries: 30, uptime: 3 s
+   81.837  Temp: 15.81 C
+   81.838    sleep entries: 43, uptime: 6 s
+   84.561  Temp: 15.81 C
+   84.569    sleep entries: 56, uptime: 9 s
+   87.282  Temp: 15.81 C
+   87.283    TX ok: fcnt=1502 len=16 (T=15.81)
+   87.485    sleep entries: 75, uptime: 11 s
+   89.994  Temp: 15.81 C
+   89.994    sleep entries: 88, uptime: 14 s
+   92.919  Temp: 15.81 C
+   92.920    sleep entries: 101, uptime: 17 s
+   95.642  Temp: 15.75 C
+   95.642    sleep entries: 114, uptime: 20 s
+   98.364  Temp: 15.81 C
+   98.364    TX ok: fcnt=1503 len=16 (T=15.81)
+   98.365    sleep entries: 133, uptime: 22 s
+  101.094  Temp: 15.81 C
+  101.095    sleep entries: 146, uptime: 25 s
+  103.825  Temp: 15.81 C
+  103.825    sleep entries: 159, uptime: 28 s
+  106.552  Temp: 15.81 C
+  106.552    sleep entries: 172, uptime: 31 s
+  109.472  Temp: 15.81 C
+  109.472    TX ok: fcnt=1504 len=16 (T=15.81)
+  109.472    sleep entries: 191, uptime: 33 s
+  112.202  Temp: 15.81 C
+  112.202    sleep entries: 204, uptime: 36 s
+  114.926  Temp: 15.81 C
+  114.927    sleep entries: 217, uptime: 39 s
+  117.640  Temp: 15.75 C
+  117.640    sleep entries: 230, uptime: 42 s
+  120.525  Temp: 15.81 C
+  120.525    TX ok: fcnt=1505 len=16 (T=15.81)
+  120.525    sleep entries: 249, uptime: 44 s
+  123.244  Temp: 15.81 C
+  123.245    sleep entries: 262, uptime: 47 s
+  125.973  Temp: 15.75 C
+  125.974    sleep entries: 275, uptime: 50 s
+  128.701  Temp: 15.81 C
+  128.701    sleep entries: 288, uptime: 53 s
+  131.423  Temp: 15.75 C
+  131.625    TX ok: fcnt=1506 len=16 (T=15.75)
+  131.625    sleep entries: 307, uptime: 55 s
+  134.149  Temp: 15.81 C
+  134.150    sleep entries: 320, uptime: 58 s
+  137.083  Temp: 15.75 C
+  137.084    sleep entries: 333, uptime: 61 s
+  139.810  Temp: 15.75 C
+  139.811    sleep entries: 346, uptime: 64 s
+  142.535  Temp: 15.75 C
+  142.535    TX ok: fcnt=1507 len=16 (T=15.75)
+  142.535    sleep entries: 365, uptime: 66 s
+  145.266  Temp: 15.81 C
+  145.267    sleep entries: 378, uptime: 69 s
+  147.985  Temp: 15.81 C
+  147.985    sleep entries: 391, uptime: 72 s
+  150.712  Temp: 15.81 C
+  150.713    sleep entries: 404, uptime: 75 s
+  153.630  Temp: 15.75 C
+  153.630    TX ok: fcnt=1508 len=16 (T=15.75)
+  153.630    sleep entries: 423, uptime: 77 s
+  156.323  Temp: 15.81 C
+  156.324    sleep entries: 436, uptime: 80 s
+  159.042  Temp: 15.75 C
+  159.043    sleep entries: 449, uptime: 83 s
+  161.772  Temp: 15.81 C
+  161.772    sleep entries: 462, uptime: 86 s
+  164.501  Temp: 15.81 C
+  164.703    TX ok: fcnt=1509 len=16 (T=15.81)
+  164.704    sleep entries: 481, uptime: 88 s
+  167.423  Temp: 15.81 C
+  167.423    sleep entries: 494, uptime: 91 s
+  170.149  Temp: 15.75 C
+  170.149    sleep entries: 507, uptime: 94 s
+  172.873  Temp: 15.75 C
+  172.874    sleep entries: 520, uptime: 97 s
+  175.585  Temp: 15.81 C
+  175.586    TX ok: fcnt=1510 len=16 (T=15.81)
+  175.586    sleep entries: 540, uptime: 100 s
+  178.310  Temp: 15.81 C
+  178.310    sleep entries: 552, uptime: 102 s
+  181.242  Temp: 15.75 C
+  181.242    sleep entries: 565, uptime: 105 s
+  183.968  Temp: 15.75 C
+  183.969    sleep entries: 578, uptime: 108 s
+  186.683  Temp: 15.75 C
+  186.684    TX ok: fcnt=1511 len=16 (T=15.75)
+  186.684    sleep entries: 598, uptime: 111 s
+  189.414  Temp: 15.75 C
+  189.414    sleep entries: 610, uptime: 113 s
+  192.136  Temp: 15.75 C
+  192.136    sleep entries: 623, uptime: 116 s
+  194.856  Temp: 15.75 C
+  194.857    sleep entries: 636, uptime: 119 s
+  197.782  Temp: 15.75 C
+  197.782    TX ok: fcnt=1512 len=16 (T=15.75)
+  197.782    sleep entries: 656, uptime: 122 s
+  200.494  Temp: 15.75 C
+  200.494    sleep entries: 668, uptime: 124 s
+  203.206  Temp: 15.81 C
+  203.206    sleep entries: 681, uptime: 127 s
+  205.941  Temp: 15.75 C
+  205.942    sleep entries: 694, uptime: 130 s
+  208.643  Temp: 15.75 C
+  208.855    TX ok: fcnt=1513 len=16 (T=15.75)
+  208.856    sleep entries: 712, uptime: 133 s
+  211.547  Temp: 15.75 C
+  211.547    sleep entries: 723, uptime: 135 s
+  214.232  Temp: 15.75 C
+  214.232    sleep entries: 736, uptime: 138 s
+  216.953  Temp: 15.81 C
+  216.954    sleep entries: 749, uptime: 141 s
+  219.047  [LOGGER] stopped by user

@@ -1,0 +1,186 @@
+    0.001  [LOGGER] start 2026-11-11T23:36:35 port=COM8 baud=115200
+    0.003  [LOGGER] port open
+    0.203  Temp: 15.62 C
+    0.204    sleep entries: 1443, uptime: 273 s
+    2.923  Temp: 15.62 C
+    2.924    TX ok: fcnt=1926 len=16 (T=15.62)
+    2.924    sleep entries: 1462, uptime: 276 s
+    5.642  Temp: 15.62 C
+    5.642    sleep entries: 1475, uptime: 279 s
+    8.373  Temp: 15.62 C
+    8.373    sleep entries: 1488, uptime: 281 s
+   11.088  Temp: 15.62 C
+   11.088    sleep entries: 1501, uptime: 284 s
+   14.010  Temp: 15.62 C
+   14.010    TX ok: fcnt=1927 len=16 (T=15.62)
+   14.011    sleep entries: 1520, uptime: 287 s
+   16.741  Temp: 15.62 C
+   16.741    sleep entries: 1533, uptime: 290 s
+   19.454  Temp: 15.62 C
+   19.454    sleep entries: 1546, uptime: 292 s
+   22.178  Temp: 15.62 C
+   22.178    sleep entries: 1559, uptime: 295 s
+   24.900  Temp: 15.62 C
+   25.102    TX ok: fcnt=1928 len=16 (T=15.62)
+   25.102    sleep entries: 1579, uptime: 298 s
+   27.787  Temp: 15.62 C
+   27.787    sleep entries: 1592, uptime: 301 s
+   30.503  Temp: 15.62 C
+   30.504    sleep entries: 1605, uptime: 303 s
+   33.233  Temp: 15.62 C
+   33.233    sleep entries: 1618, uptime: 306 s
+   35.956  Temp: 15.62 C
+   36.164    TX ok: fcnt=1929 len=16 (T=15.62)
+   36.164    sleep entries: 1637, uptime: 309 s
+   38.662  Temp: 15.62 C
+   38.662    sleep entries: 1650, uptime: 312 s
+   41.589  Temp: 15.62 C
+   41.589    sleep entries: 1664, uptime: 314 s
+   44.298  Temp: 15.62 C
+   44.298    sleep entries: 1677, uptime: 317 s
+   47.018  Temp: 15.62 C
+   47.019    TX ok: fcnt=1930 len=16 (T=15.62)
+   47.019    sleep entries: 1696, uptime: 320 s
+   49.734  Temp: 15.62 C
+   49.734    sleep entries: 1709, uptime: 323 s
+   52.462  Temp: 15.62 C
+   52.462    sleep entries: 1722, uptime: 325 s
+   55.395  Temp: 15.62 C
+   55.396    sleep entries: 1735, uptime: 328 s
+   58.133  Temp: 15.62 C
+   58.133    TX ok: fcnt=1931 len=16 (T=15.62)
+   58.133    sleep entries: 1754, uptime: 331 s
+   60.861  Temp: 15.62 C
+   60.861    sleep entries: 1767, uptime: 334 s
+   63.586  Temp: 15.62 C
+   63.586    sleep entries: 1780, uptime: 336 s
+   66.319  Temp: 15.62 C
+   66.320    sleep entries: 1793, uptime: 339 s
+   69.041  Temp: 15.62 C
+   69.242    TX ok: fcnt=1932 len=16 (T=15.62)
+   69.243    sleep entries: 1812, uptime: 342 s
+   71.971  Temp: 15.62 C
+   71.971    sleep entries: 1825, uptime: 345 s
+   74.699  Temp: 15.62 C
+   74.699    sleep entries: 1838, uptime: 347 s
+   75.893  [LOGGER] port lost
+   93.164  [LOGGER] port open
+   93.793  [BOOT] image v1.3.2, 50068 bytes
+   93.941  [BOOT] SHA-256 OK (757146ff04ee63fd...) in 642 ms
+   95.402  [BOOT] signature OK in 1647 ms
+   95.402  [BOOT] minimum allowed version v1.3.2 (EEPROM)
+   95.402  [BOOT] jumping to application
+   95.402  
+   95.402  --- BOOT ---
+   95.403  Frame counter resumes at 2001
+   95.403  SX1276 version: 0x12 (expect 0x12)
+   95.403  LoRa init OK: 868.1 MHz, SF7, BW125
+   96.239  Temp: 15.62 C
+   96.239    TX ok: fcnt=2001 len=16 (T=15.62)
+   96.239    sleep entries: 17, uptime: 0 s
+   98.940  Temp: 15.62 C
+   98.940    sleep entries: 30, uptime: 3 s
+  101.644  Temp: 15.62 C
+  101.644    sleep entries: 43, uptime: 6 s
+  104.576  Temp: 15.56 C
+  104.576    sleep entries: 56, uptime: 9 s
+  107.300  Temp: 15.62 C
+  107.300    TX ok: fcnt=2002 len=16 (T=15.62)
+  107.301    sleep entries: 75, uptime: 11 s
+  110.031  Temp: 15.62 C
+  110.031    sleep entries: 88, uptime: 14 s
+  112.758  Temp: 15.62 C
+  112.758    sleep entries: 101, uptime: 17 s
+  115.482  Temp: 15.62 C
+  115.482    sleep entries: 114, uptime: 20 s
+  118.208  Temp: 15.62 C
+  118.408    TX ok: fcnt=2003 len=16 (T=15.62)
+  118.409    sleep entries: 133, uptime: 22 s
+  121.143  Temp: 15.62 C
+  121.144    sleep entries: 146, uptime: 25 s
+  123.866  Temp: 15.62 C
+  123.866    sleep entries: 159, uptime: 28 s
+  126.600  Temp: 15.62 C
+  126.601    sleep entries: 172, uptime: 31 s
+  129.321  Temp: 15.62 C
+  129.321    TX ok: fcnt=2004 len=16 (T=15.62)
+  129.322    sleep entries: 191, uptime: 33 s
+  132.056  Temp: 15.62 C
+  132.057    sleep entries: 204, uptime: 36 s
+  134.778  Temp: 15.62 C
+  134.779    sleep entries: 217, uptime: 39 s
+  137.706  Temp: 15.62 C
+  137.706    sleep entries: 230, uptime: 42 s
+  140.429  Temp: 15.62 C
+  140.429    TX ok: fcnt=2005 len=16 (T=15.62)
+  140.429    sleep entries: 249, uptime: 44 s
+  143.145  Temp: 15.62 C
+  143.145    sleep entries: 262, uptime: 47 s
+  145.870  Temp: 15.62 C
+  145.871    sleep entries: 275, uptime: 50 s
+  148.586  Temp: 15.62 C
+  148.587    sleep entries: 288, uptime: 53 s
+  151.503  Temp: 15.62 C
+  151.503    TX ok: fcnt=2006 len=16 (T=15.62)
+  151.503    sleep entries: 307, uptime: 55 s
+  154.187  Temp: 15.62 C
+  154.187    sleep entries: 320, uptime: 58 s
+  156.899  Temp: 15.62 C
+  156.900    sleep entries: 333, uptime: 61 s
+  159.774  Temp: 15.62 C
+  159.775    sleep entries: 346, uptime: 64 s
+  162.439  Temp: 15.62 C
+  162.440    TX ok: fcnt=2007 len=16 (T=15.62)
+  162.440    sleep entries: 365, uptime: 66 s
+  165.134  Temp: 15.62 C
+  165.134    sleep entries: 378, uptime: 69 s
+  167.861  Temp: 15.62 C
+  167.861    sleep entries: 391, uptime: 72 s
+  170.803  Temp: 15.62 C
+  170.804    sleep entries: 404, uptime: 75 s
+  173.530  Temp: 15.62 C
+  173.530    TX ok: fcnt=2008 len=16 (T=15.62)
+  173.530    sleep entries: 423, uptime: 77 s
+  176.244  Temp: 15.62 C
+  176.244    sleep entries: 436, uptime: 80 s
+  178.956  Temp: 15.62 C
+  178.957    sleep entries: 449, uptime: 83 s
+  181.647  Temp: 15.62 C
+  181.847    sleep entries: 462, uptime: 86 s
+  184.541  Temp: 15.62 C
+  184.541    TX ok: fcnt=2009 len=16 (T=15.62)
+  184.541    sleep entries: 481, uptime: 88 s
+  187.263  Temp: 15.62 C
+  187.263    sleep entries: 494, uptime: 91 s
+  189.986  Temp: 15.62 C
+  189.986    sleep entries: 507, uptime: 94 s
+  192.696  Temp: 15.62 C
+  192.697    sleep entries: 520, uptime: 97 s
+  195.605  Temp: 15.62 C
+  195.606    TX ok: fcnt=2010 len=16 (T=15.62)
+  195.606    sleep entries: 540, uptime: 100 s
+  198.307  Temp: 15.62 C
+  198.307    sleep entries: 552, uptime: 102 s
+  201.048  Temp: 15.62 C
+  201.048    sleep entries: 565, uptime: 105 s
+  203.778  Temp: 15.62 C
+  203.778    sleep entries: 578, uptime: 108 s
+  206.503  Temp: 15.62 C
+  206.717    TX ok: fcnt=2011 len=16 (T=15.62)
+  206.718    sleep entries: 598, uptime: 111 s
+  209.449  Temp: 15.62 C
+  209.449    sleep entries: 610, uptime: 113 s
+  212.164  Temp: 15.56 C
+  212.164    sleep entries: 623, uptime: 116 s
+  214.881  Temp: 15.62 C
+  214.881    sleep entries: 636, uptime: 119 s
+  217.594  Temp: 15.62 C
+  217.594    TX ok: fcnt=2012 len=16 (T=15.62)
+  217.595    sleep entries: 656, uptime: 122 s
+  220.274  Temp: 15.62 C
+  220.488    sleep entries: 668, uptime: 124 s
+  223.203  Temp: 15.62 C
+  223.204    sleep entries: 681, uptime: 127 s
+  225.916  Temp: 15.62 C
+  225.916    sleep entries: 694, uptime: 130 s
+  226.543  [LOGGER] stopped by user

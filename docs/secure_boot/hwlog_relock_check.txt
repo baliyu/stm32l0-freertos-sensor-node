@@ -1,0 +1,7 @@
+Current: FLASH_OPTR=0x807000AA  FLASH_WRPROT1=0x0000003F  (RDP=0xAA)
+  RDP level 0 (no read-out protection)
+  bootloader sectors 0-5 write-protected
+  WPRMOD=0 (write-protection mode)
+  BFB2=0 (boot from bank 1)
+All preconditions met.
+--check: nothing changed.

@@ -1,0 +1,83 @@
+Current: FLASH_OPTR=0x807000AA  FLASH_WRPROT1=0x0000003F  (RDP=0xAA)
+  RDP level 0 (no read-out protection)
+  bootloader sectors 0-5 write-protected
+  WPRMOD=0 (write-protection mode)
+  BFB2=0 (boot from bank 1)
+All preconditions met.
+
+About to set read-out protection LEVEL 1 (RDP=0xBB).
+  - The debugger will no longer be able to read or write flash or data EEPROM.
+  - Firmware can then only be changed by going back to Level 0, which ERASES
+    the whole flash (bootloader, app) and the data EEPROM (frame counter,
+    minimum version).
+  - Level 2 is never used by this script.
+Type LEVEL1 to continue, anything else to cancel:       -------------------------------------------------------------------
+                       STM32CubeProgrammer v2.22.0                  
+      -------------------------------------------------------------------
+
+ST-LINK SN  : 066EFF505349898281143007
+ST-LINK FW  : V2J48M35
+Board       : B-L072Z-LRWAN1
+Voltage     : 3.27V
+SWD freq    : 4000 KHz
+Connect mode: Under Reset
+Reset mode  : Hardware reset
+Device ID   : 0x447
+Revision ID : Rev Z
+Device name : STM32L07x/L08x/L010
+NVM size  : 192 KBytes
+Device type : MCU
+Device CPU  : Cortex-M0+
+BL Version  : 0x41
+
+
+UPLOADING OPTION BYTES DATA ...
+
+  Bank          : 0x00
+  Address       : 0x4002201c 
+  Size          : 104 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 0%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+  Bank          : 0x01
+  Address       : 0x1ff80000 
+  Size          : 20 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 50%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+
+PROGRAMMING OPTION BYTES AREA ...
+
+  Bank          : 0x01
+  Address       : 0x1ff80000 
+  Size          : 20 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 50%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+
+
+Reconnecting...
+Reconnected !
+
+
+UPLOADING OPTION BYTES DATA ...
+
+  Bank          : 0x00
+  Address       : 0x4002201c 
+  Size          : 104 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 50%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+  Bank          : 0x01
+  Address       : 0x1ff80000 
+  Size          : 20 Bytes
+
+北北北北北北北北北北北北北北北北北北北北北北北北北 50%圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹圹 100%
+
+OPTION BYTE PROGRAMMING VERIFICATION:
+
+Option Bytes successfully programmed
+Time elapsed during option Bytes configuration: 00:00:01.220
+After:   FLASH_OPTR=0x807000BB  FLASH_WRPROT1=0x0000003F  (RDP=0xBB)
+Read-out protection is now LEVEL 1.
+Now unplug the USB cable for 5 s (power-on reset), plug it back in, reopen PuTTY.
