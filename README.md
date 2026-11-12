@@ -24,7 +24,7 @@ Interfaces, the image format, the memory map and the tools are in [docs/API.md](
 - [x] Secure boot stage 2: 512-byte image header + SHA-256 over header fields and app; tampered images refused (`bootloader/`, `tools/mkimage.py`)
 - [x] Secure boot stage 3: ECDSA P-256 signature over the image hash (micro-ecc, public key in the bootloader, private key off-device); unsigned and re-hashed images refused on hardware
 - [x] Secure boot stage 4: anti-rollback minimum version in data EEPROM (raised only after the signature check, power-fail safe, self-repairing); a correctly signed older image was refused on hardware
-- [x] Secure boot stage 5: power-fail-safe updates. A new image in slot B is fully verified (hash, signature, anti-rollback) before slot A is touched, copied page by page, compared, and only then cleared from B; tampered and older updates rejected with slot A untouched; a USB power cut mid-copy recovered automatically on the next boot
+- [x] Secure boot stage 5: power-fail-safe updates. A new image in slot B is fully verified (hash, signature, anti-rollback) before slot A is touched, copied page by page, compared, and only then cleared from B; tampered and older updates rejected with slot A untouched; a USB power cut mid-copy recovered automatically on the next boot (re-run on 11 November 2026 with three hand-timed pulls at roughly 27%, 54% and 89% of the copy; the 54% recovery was seen only at its end state; logs and scorecard in docs/HARDWARE_LOGS_SCORECARD.md)
 - [x] Secure boot stage 6: lockdown. Bootloader sectors write-protected (the debugger could not erase a single page, while a signed update still installed); boot-time option-byte check that refuses to start if the protection is weakened; read-out protection Level 1 set through a guarded script that can never write Level 2 (debugger reads of flash and EEPROM refused, device still boots)
 - [x] Threat-to-evidence traceability: each of the 17 threats in the threat model is linked to its named tests and hardware logs, checked on every run by `tests/traceability.py` ([docs/TRACEABILITY.md](docs/TRACEABILITY.md))
 - [x] Device keys in a hardware secure element: done in [mkrwan-secure-element-node](https://github.com/baliyu/mkrwan-secure-element-node) (ATECC608, keys never leave the chip, packets byte-identical to `secure_link/`)
@@ -106,7 +106,7 @@ flowchart TD
 *RDP Level 0 is only a warning in development builds and is refused in production builds (OB_REQUIRE_RDP1).*
 
 - Bootloader: register-level C, no HAL, 10.3 KB (the option-byte check adds under 1 KB). SHA-256 written from FIPS 180-4; ECDSA verification from micro-ecc (vendored, pinned commit, BSD licence).
-- Measured on a 16 MHz Cortex-M0+: SHA-256 over 50 KB in 0.64 s, signature check 1.6 s, update install 15.5 s.
+- Measured on a 16 MHz Cortex-M0+: SHA-256 over 50 KB in 0.64 s, signature check 1.6 s, update install about 43 s on a PC clock (the bootloader's own timer printed 15.5 s, which does not match a PC clock; see Lessons learned).
 - Host tests (`bootloader/test`, `make test`): SHA-256 (FIPS vectors, cross-checked with Python), ECDSA (RFC 6979 vectors), image checks with images made by the real signing tool, anti-rollback with simulated power cuts, updates with a power cut at 1,682 points of an install, and the option-byte check against register values read from the real chip.
 - Tools: `gen_signing_key.py` (key pair; private key stays in `keys/`, git-ignored), `mkimage.py` (header, hash, signature, slot A or B placement, test tampering), `make_image.sh` (ELF to signed image), `make_eeprom_reset.py` (development only), `rdp_level1.sh` (guarded read-out protection Level 1).
 
@@ -116,7 +116,7 @@ Evidence for each step is in `docs/secure_boot/` (CubeProgrammer output and the 
 | Step | Setting | Proof on hardware |
 |---|---|---|
 | Baseline | RDP 0xAA (Level 0), no write protection, WPRMOD=0, BFB2=0, BOR off | Raw option bytes read and every value/complement pair checked (`FF5500AA`, ...) |
-| Write protection | WRPROT1 bits 0-5 (`0x08000000`-`0x08005FFF`) | Debugger erase of the bootloader refused at the first page; signed update v1.3.0 → v1.3.1 still installed through slot B (15.6 s) |
+| Write protection | WRPROT1 bits 0-5 (`0x08000000`-`0x08005FFF`) | Debugger erase of the bootloader refused at the first page; signed update v1.3.0 → v1.3.1 still installed through slot B (the bootloader printed 15.6 s; later PC-clock measurements put a full install at about 43 s) |
 | Boot-time check | Bootloader reads FLASH_OPTR / FLASH_WRPROT1 | With protection removed the bootloader reported it and halted; with protection restored it booted normally |
 | Read-out protection | RDP 0xBB (Level 1) via `tools/rdp_level1.sh` | Debugger reads of the bootloader and of the EEPROM anti-rollback record (`01030001 FEFCFFFE` at Level 0) failed at Level 1; option-byte registers still readable; device boots and runs |
 | Level 2 | Never used | The script can only write 0xBB, refuses to run unless the chip is at Level 0 with the bootloader protected, needs a typed confirmation and reads the result back |
@@ -229,7 +229,7 @@ Then unplug USB for a few seconds (power-on reset). Do not use the RDP drop-down
 - Anti-rollback compares version numbers, not contents: two different builds both labelled 1.1.0 were both accepted. Every release must get a new, higher version.
 - The update stays safe because the source (slot B) is kept until the destination (slot A) is complete and compared. Clearing B first would make a power cut fatal; the power-cut tests (1,682 cut points) fail if the order is swapped.
 - The app is always linked for slot A, so a slot B image's vector table must be checked against slot A's address.
-- Installing 50 KB with word-at-a-time programming took 15.5 s on the STM32L0; half-page (64-byte) programming from RAM is the obvious speed-up.
+- Installing 50 KB with word-at-a-time programming took about 43 s on the STM32L0 by a PC clock (three fully timed installs, 42.7 s each). The bootloader's own timer printed about 15.5 s. It counts SysTick interrupts, and my untested suspicion is that ticks are lost while flash programming stalls the CPU. Half-page (64-byte) programming from RAM is the obvious speed-up.
 - Overwrite updates cannot fall back if a correctly signed image is functionally broken; swap-with-confirm (as in MCUboot) is the next step.
 - After pulling USB during a test, both PuTTY and CubeProgrammer lose their connection; reconnect (CubeProgrammer: Under reset + Hardware reset) before assuming the board is damaged. The LED blinking showed the app was running.
 - Option bytes are stored as value/complement pairs and loaded into the flash registers at reset; reading the raw words (`FF5500AA` = RDP 0xAA, WPRMOD 0) and the loaded registers confirmed the baseline instead of trusting the tool's decoded view.

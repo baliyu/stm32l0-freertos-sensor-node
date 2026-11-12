@@ -39,7 +39,7 @@ After the update tests I rotated the link keys (the frame counter had been reset
 | K2 | 25 to 32 bytes differ from the old app, all in one small region | 32 bytes differ, all between file positions 49,589 and 49,620, where the two 16-byte keys sit | Hit, at the top of the range |
 | K3 | Uploading the new sketch to the Feather keeps its old stored replay floor | After the upload it printed "No stored replay floor (fresh flash)" | **Miss** |
 | K4 | With the new keys the Feather verifies readings within about 11 s of the app starting | Counters 1501 to 1517 verified about 1 s after the app started. Counter 1508 was sent by the board but is not in the Feather output, and I do not know why | Hit |
-| K5 | The v1.3.2 install reports about 15.6 s while the PC clock shows about 43 s | `update installed in 15548 ms`. PC clock 42.7 s | Hit. The discrepancy is now seen on four installs |
+| K5 | The v1.3.2 install reports about 15.6 s while the PC clock shows about 43 s | `update installed in 15548 ms`. PC clock 42.7 s | Hit. The discrepancy is now seen on three fully timed installs |
 | L1 | The lock script's precondition check passes | Level 0, sectors 0 to 5 protected, WPRMOD 0, BFB2 0, all preconditions met | Hit |
 | L2 | Level 1 is set and reads back as 0xBB | After a typed confirmation: OPTR=0x807000BB, "Read-out protection is now LEVEL 1" | Hit |
 | L3 | The locked board boots v1.3.2, the option-byte check passes, with no warning | RDP level 1, OPTR=0x807000BB, WRPROT1=0x0000003F, check passed, no warning. Image v1.3.2 verified, minimum v1.3.2, no copy lines. Frame counter resumed at 2101 and no counter repeated | Hit |
@@ -54,7 +54,9 @@ After the update tests I rotated the link keys (the frame counter had been reset
 
 ## An unexplained discrepancy
 
-The bootloader prints `update installed in 15614 ms` (cut 2) and `15595 ms` (cut 3). The timestamps on my PC put the same copy at about 42.7 s in both cuts, from `copied 128` to `copied 50580`. The SHA-256 and signature timings agree with the PC clock, so the mismatch is specific to the update timer. I do not know the cause. The README figure for the install time was not checked against a wall clock and needs correcting once the cause is understood.
+The bootloader prints `update installed in 15614 ms` (cut 2), `15595 ms` (cut 3) and `15548 ms` (the v1.3.2 install). The timestamps on my PC put each of those copies at about 42.7 s, from `copied 128` to `copied 50580`. The SHA-256 and signature timings agree with the PC clock, so the mismatch is specific to the update timer. The cut 1 recopy was not logged to its end, so it is not counted.
+
+Reading the bootloader source shows that each time is the difference of a counter which a SysTick interrupt increments once per millisecond. My hypothesis, not tested, is that ticks are lost while flash programming stalls the CPU, because only one SysTick interrupt can be pending at a time. The numbers fit: 12,645 words programmed one at a time at about 3.4 ms each gives the 42.7 s on my clock, and one counted tick per word would give about 12.6 s, near the printed 15.5 s. The fit is not a test. I have not verified from the reference manual that the CPU stalls during programming on this chip. A real test needs a different timer in the bootloader, which means another mass erase, so it waits until the board is next at Level 0. The README now gives the PC-clock figure and says the printed one undercounts.
 
 ## Deviations and limits
 
@@ -71,7 +73,7 @@ The bootloader prints `update installed in 15614 ms` (cut 2) and `15595 ms` (cut
 
 ## Still to do
 
-- Find the cause of the timer discrepancy and correct the README.
+- Test the timer hypothesis the next time the board is back at Level 0, with a timer that keeps counting during flash programming.
 - Find out why counter 1508 did not reach the Feather.
 
 ## AI assistance
