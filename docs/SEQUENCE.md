@@ -77,3 +77,25 @@ sequenceDiagram
 - What happens when slot A fails its check. Not read for this diagram.
 - The BFB2 bypass: with BFB2=1 the chip can boot bank 2 and skip the bootloader. The README describes it as a gap in the boot-time check.
 - The receiver replay floor is stored in steps of 100, so after a receiver reboot up to 100 genuine packets may be rejected.
+
+## Predictions made while drawing these diagrams
+
+I wrote each prediction as a chance before reading the answer. All 15 were hits. Several were easy checks, so this says little about skill.
+
+| Step | Prediction | Chance | Outcome |
+|---|---|---|---|
+| Find the repo | The repo is at /mnt/c/stm32/l072_blinky | 85% | Hit |
+| Read the README | The docs name the cipher mode | 60% | Hit (AES-128-CTR, AES-CMAC MIC) |
+| Read the README | The docs describe the receiver rejecting a replayed frame | 75% | Hit |
+| Read the README | The docs describe how a new image gets into slot B | 55% | Hit (debugger flash; the UART and LoRa path is not built) |
+| Read the boot order | README and API.md list the same steps in the same order | 70% | Hit |
+| Read the boot order | The option-byte check comes before the slot B check | 80% | Hit |
+| Read the link rules | The receiver stores the replay floor before delivering | 85% | Hit |
+| Read the link rules | The sender sends only after its counter block is stored | 60% | Hit, as I read "reserve-before-use" |
+| Write the file | The file is created and git status shows only that file | 93% | Hit |
+| Write the file | No em dash in the file | 97% | Hit |
+| Render | Both diagrams render on GitHub first time | 70% | Hit |
+| Commit | The README anchor is found exactly once | 80% | Hit |
+| Commit | git status shows README modified and the new file before the commit | 93% | Hit |
+| Commit | The commit succeeds with one new commit on top of 81821ce | 97% | Hit |
+| Push | The push succeeds and main is level with origin/main | 97% | Hit |
